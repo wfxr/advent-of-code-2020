@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-fn p1_solve(map: &Vec<Vec<char>>, direction: (usize, usize)) -> usize {
+fn p1_solve(map: &[&[char]], direction: (usize, usize)) -> usize {
     let (dx, dy) = direction;
     let mut x = 0;
     return map.iter().step_by(dy).fold(0, |acc, row| {
@@ -10,16 +10,17 @@ fn p1_solve(map: &Vec<Vec<char>>, direction: (usize, usize)) -> usize {
     });
 }
 
-fn p2_solve(map: &Vec<Vec<char>>, slopes: &[(usize, usize)]) -> usize {
+fn p2_solve(map: &[&[char]], slopes: &[(usize, usize)]) -> usize {
     slopes.iter().fold(1, |acc, &direction| acc * p1_solve(map, direction))
 }
 
 fn main() {
     #[rustfmt::skip]
-    let inputs: Vec<Vec<char>> = io::stdin().lock().lines()
+    let inputs: Vec<Vec<_>> = io::stdin().lock().lines()
         .map(|l| l.unwrap())
         .map(|line| line.chars().collect())
         .collect();
+    let inputs: Vec<&[char]> = inputs.iter().map(|v| v.as_ref()).collect();
 
     let rs = p1_solve(&inputs, (3, 1));
     println!("part 1 result: {}", rs);

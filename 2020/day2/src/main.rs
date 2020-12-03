@@ -9,7 +9,7 @@ fn is_valid_2(p1: usize, p2: usize, t: char, s: &str) -> bool {
 }
 
 #[rustfmt::skip]
-fn valid_count(inputs: &Vec<(usize, usize, char, String)>, f: fn(usize, usize, char, &str) -> bool) -> usize {
+fn valid_count(inputs: &[(usize, usize, char, String)], f: fn(usize, usize, char, &str) -> bool) -> usize {
     inputs.iter().fold(0, |acc, (x, y, t, s)| acc + f(*x, *y, *t, s) as usize)
 }
 
