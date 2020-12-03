@@ -1,7 +1,6 @@
 use std::io::{self, BufRead};
 
-fn p1_solve(map: &[&[char]], direction: (usize, usize)) -> usize {
-    let (dx, dy) = direction;
+fn p1_solve(map: &[&[char]], (dx, dy): (usize, usize)) -> usize {
     let mut x = 0;
     return map.iter().step_by(dy).fold(0, |acc, row| {
         let acc = acc + (row[x] == '#') as usize;
