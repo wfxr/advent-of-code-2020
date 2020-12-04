@@ -39,21 +39,26 @@ fn solve(passports: &[HashMap<&str, &str>], func: fn(&HashMap<&str, &str>) -> bo
 }
 
 fn main() {
-    let reader = io::stdin();
     let mut inputs: String = String::new();
-    reader.lock().read_to_string(&mut inputs).unwrap();
+    io::stdin().lock().read_to_string(&mut inputs).unwrap();
     let inputs: Vec<_> = inputs.split("\n\n").filter(|s| !s.is_empty()).map(parse).collect();
 
-    println!("part 1 result: {}", solve(&inputs, p1_valid));
-    println!("part 1 result: {}", solve(&inputs, p2_valid));
+    let result = solve(&inputs, p1_valid);
+    assert_eq!(208, result);
+    println!("part 1 result: {}", result);
+
+    let result = solve(&inputs, p2_valid);
+    assert_eq!(167, result);
+    println!("part 1 result: {}", result);
 }
 
 #[rustfmt::skip]
 fn parse(s: &str) -> HashMap<&str, &str> {
-    return s.split_whitespace().filter(|s| !s.is_empty())
+    s.split_whitespace()
+        .filter(|s| !s.is_empty())
         .map(|item| {
             let mut split = item.split(":");
             (split.next().unwrap(), split.next().unwrap())
         })
-        .collect();
+        .collect()
 }
