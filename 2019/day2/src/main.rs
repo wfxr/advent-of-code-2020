@@ -1,10 +1,10 @@
 use std::io::{self, BufRead};
 
 #[allow(non_snake_case)]
-fn p1_solve(intcode: &[usize]) -> usize {
+fn p1_solve(intcode: &[usize], verb: usize, noun: usize) -> usize {
     let mut C = intcode.to_vec();
-    C[1] = 12;
-    C[2] = 2;
+    C[1] = noun;
+    C[2] = verb;
 
     let mut p = 0;
     while p < C.len() {
@@ -18,6 +18,17 @@ fn p1_solve(intcode: &[usize]) -> usize {
     C[0]
 }
 
+fn p2_solve(intcode: &[usize]) -> usize {
+    for verb in 0..100 {
+        for noun in 0..100 {
+            if p1_solve(intcode, verb, noun) == 19690720 {
+                return 100 * noun + verb;
+            }
+        }
+    }
+    unreachable!()
+}
+
 #[rustfmt::skip]
 fn main() {
     let inputs: Vec<usize> = io::stdin().lock().lines().next().unwrap().unwrap()
@@ -25,7 +36,11 @@ fn main() {
         .map(|s| s.parse().unwrap())
         .collect();
 
-    let result = p1_solve(&inputs);
+    let result = p1_solve(&inputs, 2, 12);
     println!("part 1 result: {}", result);
-    assert_eq!(10, result);
+    assert_eq!(5305097, result);
+
+    let result = p2_solve(&inputs);
+    println!("part 2 result: {}", result);
+    assert_eq!(0, result);
 }
