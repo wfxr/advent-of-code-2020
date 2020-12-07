@@ -21,8 +21,34 @@ fn p1_solve(min: usize, max: usize) -> usize {
         .count()
 }
 
+fn p2_solve(min: usize, max: usize) -> usize {
+    (min..=max)
+        .filter(|n| {
+            let mut x = *n;
+            let mut prev = 10;
+            let mut digits = [0; 10];
+            while x != 0 {
+                let curr = x % 10;
+                x /= 10;
+                if curr > prev {
+                    return false;
+                }
+                digits[curr] += 1;
+                prev = curr;
+            }
+            digits.iter().any(|&count| count == 2)
+        })
+        .count()
+}
+
 fn main() {
-    let result = p1_solve(278384, 824795);
+    let (min, max) = (278384, 824795);
+
+    let result = p1_solve(min, max);
     println!("part 1 result: {}", result);
+    assert_eq!(921, result);
+
+    let result = p2_solve(min, max);
+    println!("part 2 result: {}", result);
     assert_eq!(921, result);
 }
