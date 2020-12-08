@@ -22,16 +22,14 @@ impl IntcodeComputer {
         while !self.finished() {
             self.load_instruction();
             match self.opcode {
-                1 => {
-                    let (a, b) = (self.load_param(), self.load_param());
-                    self.save(a + b);
-                }
-                2 => {
-                    let (a, b) = (self.load_param(), self.load_param());
-                    self.save(a * b);
-                }
+                1 => self.op_binary(|v1, v2| v1 + v2),
+                2 => self.op_binary(|v1, v2| v1 * v2),
                 3 => self.save(input),
                 4 => res = self.deref_load(),
+                5 => self.jump_if(|x| x != 0),
+                6 => self.jump_if(|x| x == 0),
+                7 => self.set_if(|v1, v2| v1 < v2),
+                8 => self.set_if(|v1, v2| v1 == v2),
                 99 => break,
                 _ => unreachable!("unknown opcode {} (pos: {})", self.opcode, self.pos),
             }
@@ -41,6 +39,33 @@ impl IntcodeComputer {
 
     pub fn finished(&self) -> bool {
         self.pos >= self.program.len()
+    }
+
+    fn jump(&mut self) {
+        self.pos = self.load_param() as usize;
+    }
+
+    fn jump_if(&mut self, cond: fn(i64) -> bool) {
+        match cond(self.load_param()) {
+            true => self.jump(),
+            false => self.skip(1),
+        }
+    }
+
+    fn set_if(&mut self, cond: fn(i64, i64) -> bool) {
+        match cond(self.load_param(), self.load_param()) {
+            true => self.save(1),
+            false => self.save(0),
+        }
+    }
+
+    fn op_binary(&mut self, op: fn(i64, i64) -> i64) {
+        let (a, b) = (self.load_param(), self.load_param());
+        self.save(op(a, b));
+    }
+
+    fn skip(&mut self, n: usize) {
+        self.pos += n;
     }
 
     fn load(&mut self) -> i64 {
@@ -78,12 +103,6 @@ impl IntcodeComputer {
 
 #[rustfmt::skip]
 fn main() {
-    test(&[1,0,0,0,99],          0,   &[2,0,0,0,99],          0);
-    test(&[2,3,0,3,99],          0,   &[2,3,0,6,99],          0);
-    test(&[2,4,4,5,99,0],        0,   &[2,4,4,5,99,9801],     0);
-    test(&[1,1,1,4,99,5,6,0,99], 0,   &[30,1,1,4,2,5,6,0,99], 0);
-    test(&[3,0,4,0,99],          302, &[302,0,4,0,99],        302);
-
     let inputs: Vec<_> = io::stdin().lock().lines().next().unwrap().unwrap()
         .split(',')
         .map(|s| s.parse().unwrap())
@@ -93,12 +112,53 @@ fn main() {
     let result = computer.run(1);
     println!("part 1 result: {}", result);
     assert_eq!(8332629, result);
+
+    let mut computer = IntcodeComputer::new(&inputs);
+    let result = computer.run(5);
+    println!("part 5 result: {}", result);
+    assert_eq!(8805067, result);
 }
 
-fn test(program: &[i64], input: i64, expected_program: &[i64], expected_output: i64) {
-    let mut computer = IntcodeComputer::new(program);
-    let actual_output = computer.run(input);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    assert_eq!(expected_program, computer.program);
-    assert_eq!(expected_output, actual_output);
+    macro_rules! test_computer {
+        ($program:expr, $input:expr, $expect:expr) => {
+            let mut computer = IntcodeComputer::new($program);
+            let actual = computer.run($input);
+            assert_eq!($expect, actual);
+        };
+    }
+
+    #[test]
+    fn test_day2() {
+        test_computer!(&[1, 0, 0, 0, 99], 0, 0);
+        test_computer!(&[2, 3, 0, 3, 99], 0, 0);
+        test_computer!(&[2, 4, 4, 5, 99, 0], 0, 0);
+        test_computer!(&[1, 1, 1, 4, 99, 5, 6, 0, 99], 0, 0);
+    }
+
+    #[test]
+    fn test_day5() {
+        let input = &[3, 0, 4, 0, 99];
+        test_computer!(input, 302, 302);
+        test_computer!(input, -1, -1);
+
+        let input = &[3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
+        test_computer!(input, 7, 0);
+        test_computer!(input, 8, 1);
+
+        let input = &[3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
+        test_computer!(input, 8, 0);
+        test_computer!(input, 7, 1);
+
+        let input = &[3, 3, 1108, -1, 8, 3, 4, 3, 99];
+        test_computer!(input, 7, 0);
+        test_computer!(input, 8, 1);
+
+        let input = &[3, 3, 1107, -1, 8, 3, 4, 3, 99];
+        test_computer!(input, 8, 0);
+        test_computer!(input, 7, 1);
+    }
 }
