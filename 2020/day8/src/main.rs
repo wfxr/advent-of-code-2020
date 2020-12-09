@@ -1,9 +1,23 @@
 use std::io::{self, BufRead};
 
-fn p1_solve(program: &[(String, i64)], init: i64) -> i64 {
-    let mut program: Vec<_> = program.iter().map(|(ins, arg)| Some((ins.as_ref(), arg))).collect();
-    let (mut acc, mut p) = (init, 0);
-    loop {
+fn p1_solve(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
+    let mut program: Vec<_> = program
+        .iter()
+        .enumerate()
+        .map(|(i, (ins, arg))| {
+            let ins = match flip {
+                Some(flip) if i == flip => match ins.as_ref() {
+                    "nop" => "jmp",
+                    "jmp" => "nop",
+                    _ => ins,
+                },
+                _ => ins,
+            };
+            Some((ins, arg))
+        })
+        .collect();
+    let (mut acc, mut p) = (0, 0);
+    while p < program.len() {
         match program[p].take() {
             Some((ins, arg)) => match ins {
                 "acc" => {
@@ -14,10 +28,24 @@ fn p1_solve(program: &[(String, i64)], init: i64) -> i64 {
                 "nop" => p += 1,
                 _ => unreachable!(),
             },
-            None => break,
+            None => return (acc, false), // cannot halt
         };
     }
-    acc
+    (acc, true) // can halt
+}
+
+fn p2_solve(program: &[(String, i64)]) -> i64 {
+    for (i, _) in program
+        .iter()
+        .enumerate()
+        .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
+    {
+        let (result, halt) = p1_solve(program, Some(i));
+        if halt {
+            return result;
+        }
+    }
+    unreachable!()
 }
 
 fn main() {
@@ -34,7 +62,11 @@ fn main() {
         })
         .collect();
 
-    let result = p1_solve(&inputs, 0);
+    let (result, _) = p1_solve(&inputs, None);
     println!("part1 result: {}", result);
-    assert_eq!(0, result);
+    assert_eq!(1939, result);
+
+    let result = p2_solve(&inputs);
+    println!("part2 result: {}", result);
+    assert_eq!(2212, result);
 }
