@@ -36,79 +36,22 @@ fn p1_occupied(seats: &[Vec<char>], (i, j): (usize, usize)) -> usize {
 // self not included
 fn p2_occupied(seats: &[Vec<char>], (i, j): (usize, usize)) -> usize {
     let (maxdi, maxdj) = (seats.len() - i - 1, seats[i].len() - j - 1);
+
+    fn occupied(mut iter: impl Iterator<Item = char>) -> usize {
+        iter.find(|&s| s != '.').map(|s| (s == '#') as usize).unwrap_or(0)
+    }
+
     let mut sum = 0;
 
-    // up
-    for d in 1..=i {
-        let seat = seats[i - d][j];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
+    sum += occupied((1..=i).map(|d| seats[i - d][j])); // up
+    sum += occupied((1..=j).map(|d| seats[i][j - d])); // left
+    sum += occupied((1..=maxdi).map(|d| seats[i + d][j])); // down
+    sum += occupied((1..=maxdj).map(|d| seats[i][j + d])); // right
+    sum += occupied((1..=i.min(j)).map(|d| seats[i - d][j - d])); // up-left
+    sum += occupied((1..=i.min(maxdj)).map(|d| seats[i - d][j + d])); // up-right
+    sum += occupied((1..=(maxdi).min(j)).map(|d| seats[i + d][j - d])); // down-left
+    sum += occupied((1..=(maxdi).min(maxdj)).map(|d| seats[i + d][j + d])); // down-right
 
-    // down
-    for d in 1..=maxdi {
-        let seat = seats[i + d][j];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // left
-    for d in 1..=j {
-        let seat = seats[i][j - d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // right
-    for d in 1..=maxdj {
-        let seat = seats[i][j + d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // up-left
-    for d in 1..=i.min(j) {
-        let seat = seats[i - d][j - d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // up-right
-    for d in 1..=i.min(maxdj) {
-        let seat = seats[i - d][j + d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // down-left
-    for d in 1..=(maxdi).min(j) {
-        let seat = seats[i + d][j - d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
-
-    // down-right
-    for d in 1..=(maxdi).min(maxdj) {
-        let seat = seats[i + d][j + d];
-        if seat != '.' {
-            sum += (seat == '#') as usize;
-            break;
-        }
-    }
     sum
 }
 
