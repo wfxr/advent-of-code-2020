@@ -1,30 +1,5 @@
 use std::io::{self, BufRead};
 
-fn p1_solve(ins: &[(char, i64)]) -> i64 {
-    let ((x, y), _) = ins
-        .iter()
-        .fold(((0, 0), (1, 0)), |((x, y), (dx, dy)), &(ins, v)| match ins {
-            'N' => ((x, y + v), (dx, dy)),
-            'S' => ((x, y - v), (dx, dy)),
-            'E' => ((x + v, y), (dx, dy)),
-            'W' => ((x - v, y), (dx, dy)),
-            'L' => ((x, y), turn_left((dx, dy), v)),
-            'R' => ((x, y), turn_left((dx, dy), 360 - v)),
-            'F' => ((x + v * dx, y + v * dy), (dx, dy)),
-            _ => unreachable!(),
-        });
-    x.abs() + y.abs()
-}
-
-fn turn_left((dx, dy): (i64, i64), degrees: i64) -> (i64, i64) {
-    match degrees {
-        90 => (-dy, dx),
-        180 => (-dx, -dy),
-        270 => (dy, -dx),
-        _ => unreachable!("degrees: {}", degrees),
-    }
-}
-
 struct Point {
     x: i64,
     y: i64,
@@ -32,7 +7,7 @@ struct Point {
 
 impl Point {
     fn new(x: i64, y: i64) -> Self {
-        Point { x, y }
+        Self { x, y }
     }
 
     fn turn(&self, degrees: i64) -> Self {
@@ -44,30 +19,59 @@ impl Point {
         }
     }
 
-    fn offset(&self, dx: i64, dy: i64) -> Self {
-        Point::new(self.x + dx, self.y + dy)
+    fn mul(&self, rhs: i64) -> Self {
+        Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        }
+    }
+
+    fn add(&self, rhs: &Point) -> Self {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
     }
 
     fn manhattan(&self) -> usize {
         (self.x.abs() + self.y.abs()) as usize
     }
 }
-fn p2_solve(ins: &[(char, i64)]) -> usize {
-    let mut w = Point { x: 10, y: 1 };
-    let mut s = Point { x: 0, y: 0 };
+
+fn p1_solve(ins: &[(char, i64)]) -> usize {
+    let mut ship = Point::new(0, 0);
+    let mut direction = Point::new(1, 0);
     for &(ins, v) in ins {
         match ins {
-            'N' => w.y += v,
-            'S' => w.y -= v,
-            'E' => w.x += v,
-            'W' => w.x -= v,
-            'L' => w = w.turn(v),
-            'R' => w = w.turn(360 - v),
-            'F' => s = s.offset(w.x * v, w.y * v),
+            'N' => ship.y += v,
+            'S' => ship.y -= v,
+            'E' => ship.x += v,
+            'W' => ship.x -= v,
+            'L' => direction = direction.turn(v),
+            'R' => direction = direction.turn(360 - v),
+            'F' => ship = ship.add(&direction.mul(v)),
+            _ => unreachable!(),
+        }
+    }
+    ship.manhattan()
+}
+
+fn p2_solve(ins: &[(char, i64)]) -> usize {
+    let mut waypoint = Point::new(10, 1);
+    let mut ship = Point::new(0, 0);
+    for &(ins, v) in ins {
+        match ins {
+            'N' => waypoint.y += v,
+            'S' => waypoint.y -= v,
+            'E' => waypoint.x += v,
+            'W' => waypoint.x -= v,
+            'L' => waypoint = waypoint.turn(v),
+            'R' => waypoint = waypoint.turn(360 - v),
+            'F' => ship = ship.add(&waypoint.mul(v)),
             _ => unreachable!("instruction: {}", ins),
         }
     }
-    s.manhattan()
+    ship.manhattan()
 }
 
 fn main() {
