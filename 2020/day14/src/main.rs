@@ -7,17 +7,14 @@ fn parse_mask(mask: &str, target: char) -> u64 {
         .fold(0, |x, b| (x << 1) + b)
 }
 
+#[rustfmt::skip]
 fn p1_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
-    inputs
-        .iter()
+    inputs.iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let mask0 = !parse_mask(mask, '0');
-            let mask1 = parse_mask(mask, '1');
+            let (mask0, mask1) = (!parse_mask(mask, '0'), parse_mask(mask, '1'));
             acc.extend(lines.iter().map(|(mem, val)| (mem, val & mask0 | mask1)));
             acc
-        })
-        .values()
-        .sum()
+        }).values().sum()
 }
 
 fn combinations(mask: u64, val: u64, addrs: &mut Vec<u64>) {
@@ -31,28 +28,25 @@ fn combinations(mask: u64, val: u64, addrs: &mut Vec<u64>) {
     }
 }
 
+#[rustfmt::skip]
 fn p2_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
-    inputs
-        .iter()
+    inputs.iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let mask1 = parse_mask(mask, '1');
-            let maskx = parse_mask(mask, 'X');
+            let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
             acc.extend(lines.iter().flat_map(|&(mem, val)| {
                 let mut addrs = Vec::new();
                 combinations(maskx, mem | mask1, &mut addrs);
                 addrs.into_iter().map(move |addr| (addr, val))
             }));
             acc
-        })
-        .values()
-        .sum()
+        }).values().sum()
 }
 
+#[rustfmt::skip]
 fn main() {
     let mut inputs = String::new();
     io::stdin().read_to_string(&mut inputs).unwrap();
-    let inputs: Vec<_> = inputs
-        .split("mask = ")
+    let inputs: Vec<_> = inputs.split("mask = ")
         .map(|s| {
             let mut it = s.split('\n');
             let mask = it.next().unwrap().trim();
