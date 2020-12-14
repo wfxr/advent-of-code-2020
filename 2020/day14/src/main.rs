@@ -1,18 +1,18 @@
 use std::collections::HashMap;
 use std::io::{self, Read};
 
+fn parse_mask(mask: &str, target: char) -> u64 {
+    mask.chars()
+        .map(|c| if c == target { 1 } else { 0 })
+        .fold(0, |x, b| (x << 1) + b)
+}
+
 fn p1_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
     inputs
         .iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let mask0 = mask
-                .chars()
-                .map(|c| if c == '0' { 0 } else { 1 })
-                .fold(0u64, |x, b| x * 2 + b);
-            let mask1 = mask
-                .chars()
-                .map(|c| if c == '1' { 1 } else { 0 })
-                .fold(0u64, |x, b| x * 2 + b);
+            let mask0 = !parse_mask(mask, '0');
+            let mask1 = parse_mask(mask, '1');
             acc.extend(lines.iter().map(|(mem, val)| (mem, val & mask0 | mask1)));
             acc
         })
@@ -35,14 +35,8 @@ fn p2_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
     inputs
         .iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let mask1 = mask
-                .chars()
-                .map(|c| if c == '1' { 1 } else { 0 })
-                .fold(0u64, |x, b| x * 2 + b);
-            let maskx = mask
-                .chars()
-                .map(|c| if c == 'X' { 1 } else { 0 })
-                .fold(0u64, |x, b| x * 2 + b);
+            let mask1 = parse_mask(mask, '1');
+            let maskx = parse_mask(mask, 'X');
             acc.extend(lines.iter().flat_map(|&(mem, val)| {
                 let mut addrs = Vec::new();
                 combinations(maskx, mem | mask1, &mut addrs);
