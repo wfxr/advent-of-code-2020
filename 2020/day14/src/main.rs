@@ -17,14 +17,14 @@ fn p1_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
         }).values().sum()
 }
 
-fn combinations(mask: u64, val: u64, addrs: &mut Vec<u64>) {
+fn update_memory(mask: u64, addr: u64, val: u64, memory: &mut HashMap<u64, u64>) {
     if mask == 0 {
-        addrs.push(val);
+        memory.insert(addr, val);
     } else {
         let x = mask & (!mask + 1); // get right-most '1' of mask
         let mask = mask & !x; // clear right-most '1' of mask
-        combinations(mask, val & !x, addrs);
-        combinations(mask, val | x, addrs);
+        update_memory(mask, addr & !x, val, memory);
+        update_memory(mask, addr | x, val, memory);
     }
 }
 
@@ -33,11 +33,7 @@ fn p2_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
     inputs.iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
             let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
-            acc.extend(lines.iter().flat_map(|&(mem, val)| {
-                let mut addrs = Vec::new();
-                combinations(maskx, mem | mask1, &mut addrs);
-                addrs.into_iter().map(move |addr| (addr, val))
-            }));
+            lines.iter().for_each(|&(mem, val)| update_memory(maskx, mem | mask1, val, &mut acc));
             acc
         }).values().sum()
 }
