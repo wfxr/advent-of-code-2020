@@ -1,6 +1,6 @@
 use std::io::{self, BufRead};
 
-fn p1_solve(nums: &[usize], nth: usize) -> usize {
+fn solve(nums: &[usize], nth: usize) -> usize {
     let mut position = vec![(0, 0); nth];
     nums.iter().enumerate().for_each(|(i, &n)| position[n] = (0, i + 1));
     let mut prev = *nums.last().unwrap();
@@ -21,7 +21,11 @@ fn main() {
         .flat_map(|l| l.unwrap().split(',').map(|s| s.parse().unwrap()).collect::<Vec<_>>())
         .collect();
 
-    let result = p1_solve(&inputs, 2020);
+    let result = solve(&inputs, 2020);
     println!("part 1 result: {}", result);
     assert_eq!(866, result);
+
+    let result = solve(&inputs, 30000000);
+    println!("part 1 result: {}", result);
+    assert_eq!(1437692, result);
 }
