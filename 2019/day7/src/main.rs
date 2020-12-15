@@ -2,19 +2,29 @@ use std::io::{self, BufRead};
 
 fn p1_solve(program: &[i64], phases: &[i64], init: i64) -> i64 {
     let mut max = i64::MIN;
-    let mut max_perm = Vec::new();
     for phases in permutations(phases) {
-        let mut input = init;
+        let mut x = init;
         for phase in &phases {
-            input = IntcodeComputer::new(program).run(vec![*phase, input].iter())
+            x = IntcodeComputer::new(program).run(vec![*phase, x].iter()).unwrap()
         }
-        if input > max {
-            max = input;
-            max_perm = phases.to_vec();
-        }
-        println!("max perm: {:?}", max_perm);
+        max = max.max(x);
     }
-    println!("max perm: {:?}", max_perm);
+    max
+}
+
+fn p2_solve(program: &[i64], phases: &[i64], init: i64) -> i64 {
+    let mut max = i64::MIN;
+    for phases in permutations(phases) {
+        let mut amps = vec![IntcodeComputer::new(program); 5];
+        let (mut signal, mut phases) = (init, phases.iter());
+        for i in (0..amps.len()).cycle() {
+            match amps[i].run(vec![phases.next(), Some(&signal)].into_iter().filter_map(|n| n)) {
+                Some(output) => signal = output,
+                None => break,
+            }
+        }
+        max = max.max(signal);
+    }
     max
 }
 
@@ -42,13 +52,19 @@ fn main() {
         .split(',')
         .map(|s| s.parse().unwrap())
         .collect();
-    let phases: Vec<_> = (0..5).collect();
 
+    let phases: Vec<_> = (0..5).collect();
     let result = p1_solve(&inputs, &phases, 0);
     println!("part 1 result: {}", result);
-    assert_eq!(0, result);
+    assert_eq!(65464, result);
+
+    let phases: Vec<_> = (5..10).collect();
+    let result = p2_solve(&inputs, &phases, 0);
+    println!("part 2 result: {}", result);
+    assert_eq!(1518124, result);
 }
 
+#[derive(Debug, Clone)]
 struct IntcodeComputer {
     program: Vec<i64>,
     pos:     usize,
@@ -66,15 +82,14 @@ impl IntcodeComputer {
         }
     }
 
-    pub fn run<'a>(&mut self, mut input: impl Iterator<Item = &'a i64>) -> i64 {
-        let mut res = 0;
+    pub fn run<'a>(&mut self, mut input: impl Iterator<Item = &'a i64>) -> Option<i64> {
         while !self.finished() {
             self.load_instruction();
             match self.opcode {
                 1 => self.op_binary(|v1, v2| v1 + v2),
                 2 => self.op_binary(|v1, v2| v1 * v2),
-                3 => self.save(*input.next().unwrap()),
-                4 => res = self.deref_load(),
+                3 => self.save(*input.next().expect("failed get input")),
+                4 => return Some(self.deref_load()),
                 5 => self.jump_if(|x| x != 0),
                 6 => self.jump_if(|x| x == 0),
                 7 => self.set_if(|v1, v2| v1 < v2),
@@ -83,7 +98,7 @@ impl IntcodeComputer {
                 _ => unreachable!("unknown opcode {} (pos: {})", self.opcode, self.pos),
             }
         }
-        res
+        None
     }
 
     pub fn finished(&self) -> bool {
@@ -164,32 +179,77 @@ mod computer_tests {
 
     #[test]
     fn test_day2() {
-        test_computer!(&[1, 0, 0, 0, 99], 0, 0);
-        test_computer!(&[2, 3, 0, 3, 99], 0, 0);
-        test_computer!(&[2, 4, 4, 5, 99, 0], 0, 0);
-        test_computer!(&[1, 1, 1, 4, 99, 5, 6, 0, 99], 0, 0);
+        test_computer!(&[1, 0, 0, 0, 99], 0, None);
+        test_computer!(&[2, 3, 0, 3, 99], 0, None);
+        test_computer!(&[2, 4, 4, 5, 99, 0], 0, None);
+        test_computer!(&[1, 1, 1, 4, 99, 5, 6, 0, 99], 0, None);
     }
 
     #[test]
     fn test_day5() {
         let input = &[3, 0, 4, 0, 99];
-        test_computer!(input, 302, 302);
-        test_computer!(input, -1, -1);
+        test_computer!(input, 302, Some(302));
+        test_computer!(input, -1, Some(-1));
 
         let input = &[3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8];
-        test_computer!(input, 7, 0);
-        test_computer!(input, 8, 1);
+        test_computer!(input, 7, Some(0));
+        test_computer!(input, 8, Some(1));
 
         let input = &[3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8];
-        test_computer!(input, 8, 0);
-        test_computer!(input, 7, 1);
+        test_computer!(input, 8, Some(0));
+        test_computer!(input, 7, Some(1));
 
         let input = &[3, 3, 1108, -1, 8, 3, 4, 3, 99];
-        test_computer!(input, 7, 0);
-        test_computer!(input, 8, 1);
+        test_computer!(input, 7, Some(0));
+        test_computer!(input, 8, Some(1));
 
         let input = &[3, 3, 1107, -1, 8, 3, 4, 3, 99];
-        test_computer!(input, 8, 0);
-        test_computer!(input, 7, 1);
+        test_computer!(input, 8, Some(0));
+        test_computer!(input, 7, Some(1));
+    }
+
+    #[test]
+    fn test_rerun1() {
+        let program = &[3, 0, 4, 0, 4, 0, 99];
+        let mut computer = IntcodeComputer::new(program);
+        let output = computer.run(vec![302].iter());
+        assert_eq!(output, Some(302));
+        let output = computer.run(vec![302].iter());
+        assert_eq!(output, Some(302));
+
+        let output = computer.run(vec![302].iter());
+        assert_eq!(output, None);
+        let output = computer.run(vec![302].iter());
+        assert_eq!(output, None);
+    }
+
+    #[test]
+    fn test_rerun2() {
+        #[rustfmt::skip]
+        let program = &[
+            3, 26,
+            1001, 26, -4, 26,
+            3, 27,
+            1002, 27, 2, 27,
+            1, 27, 26, 27,
+            4, 27,
+            1001, 28, -1, 28,
+            1005, 28, 6,
+            99,
+            0, 0, 5,
+        ];
+        let mut computer = IntcodeComputer::new(program);
+
+        let output = computer.run(vec![100, 200].iter());
+        assert_eq!(computer.pos, 18);
+        assert_eq!(output, Some(496));
+
+        let output = computer.run(vec![496].iter());
+        assert_eq!(computer.pos, 18);
+        assert_eq!(output, Some(1088));
+
+        let output = computer.run(vec![1088].iter());
+        assert_eq!(computer.pos, 18);
+        assert_eq!(output, Some(2272));
     }
 }
