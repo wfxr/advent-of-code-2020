@@ -1,49 +1,41 @@
 use std::io::{self, BufRead};
 
 fn p1_solve(program: &[i64], phases: &[i64], init: i64) -> i64 {
-    let mut max = i64::MIN;
-    for phases in permutations(phases) {
-        let mut x = init;
-        for phase in &phases {
-            x = IntcodeComputer::new(program).run(vec![*phase, x].iter()).unwrap()
-        }
-        max = max.max(x);
-    }
-    max
+    permutations_max(&mut phases.to_vec(), 0, |phases: &[i64]| {
+        phases.iter().fold(init, |sig, phase| {
+            IntcodeComputer::new(program).run(vec![*phase, sig].iter()).unwrap()
+        })
+    })
 }
 
 fn p2_solve(program: &[i64], phases: &[i64], init: i64) -> i64 {
-    let mut max = i64::MIN;
-    for phases in permutations(phases) {
+    permutations_max(&mut phases.to_vec(), 0, |phases: &[i64]| {
         let mut amps = vec![IntcodeComputer::new(program); 5];
-        let (mut signal, mut phases) = (init, phases.iter());
+        let (mut sig, mut phases) = (init, phases.iter());
         for i in (0..amps.len()).cycle() {
-            match amps[i].run(vec![phases.next(), Some(&signal)].into_iter().filter_map(|n| n)) {
-                Some(output) => signal = output,
+            match amps[i].run(vec![phases.next(), Some(&sig)].into_iter().filter_map(|n| n)) {
+                Some(output) => sig = output,
                 None => break,
             }
         }
-        max = max.max(signal);
-    }
-    max
+        sig
+    })
 }
 
-fn do_permutations(v: &mut Vec<i64>, pos: usize, result: &mut Vec<Vec<i64>>) {
-    if pos == v.len() {
-        result.push(v.clone());
+fn permutations_max<F>(phases: &mut Vec<i64>, pos: usize, f: F) -> i64
+where
+    F: Fn(&[i64]) -> i64 + Copy,
+{
+    if pos == phases.len() {
+        f(phases)
     } else {
-        for i in pos..v.len() {
-            v.swap(pos, i);
-            do_permutations(v, pos + 1, result);
-            v.swap(pos, i);
-        }
+        (pos..phases.len()).fold(i64::MIN, |acc, i| {
+            phases.swap(pos, i);
+            let sig = permutations_max(phases, pos + 1, f);
+            phases.swap(pos, i);
+            acc.max(sig)
+        })
     }
-}
-
-fn permutations(v: &[i64]) -> Vec<Vec<i64>> {
-    let mut results = Vec::new();
-    do_permutations(&mut v.to_vec(), 0, &mut results);
-    results
 }
 
 #[rustfmt::skip]
@@ -209,7 +201,7 @@ mod computer_tests {
     }
 
     #[test]
-    fn test_rerun1() {
+    fn test_rerun() {
         let program = &[3, 0, 4, 0, 4, 0, 99];
         let mut computer = IntcodeComputer::new(program);
         let output = computer.run(vec![302].iter());
@@ -221,35 +213,5 @@ mod computer_tests {
         assert_eq!(output, None);
         let output = computer.run(vec![302].iter());
         assert_eq!(output, None);
-    }
-
-    #[test]
-    fn test_rerun2() {
-        #[rustfmt::skip]
-        let program = &[
-            3, 26,
-            1001, 26, -4, 26,
-            3, 27,
-            1002, 27, 2, 27,
-            1, 27, 26, 27,
-            4, 27,
-            1001, 28, -1, 28,
-            1005, 28, 6,
-            99,
-            0, 0, 5,
-        ];
-        let mut computer = IntcodeComputer::new(program);
-
-        let output = computer.run(vec![100, 200].iter());
-        assert_eq!(computer.pos, 18);
-        assert_eq!(output, Some(496));
-
-        let output = computer.run(vec![496].iter());
-        assert_eq!(computer.pos, 18);
-        assert_eq!(output, Some(1088));
-
-        let output = computer.run(vec![1088].iter());
-        assert_eq!(computer.pos, 18);
-        assert_eq!(output, Some(2272));
     }
 }
