@@ -1,5 +1,3 @@
-use std::io::{self, BufRead};
-
 fn solve(nums: &[usize], nth: usize) -> usize {
     let mut position = vec![(0, 0); nth];
     nums.iter().enumerate().for_each(|(i, &n)| position[n] = (0, i + 1));
@@ -14,11 +12,10 @@ fn solve(nums: &[usize], nth: usize) -> usize {
     prev
 }
 
-fn main() {
-    let inputs: Vec<usize> = io::stdin()
-        .lock()
-        .lines()
-        .flat_map(|l| l.unwrap().split(',').map(|s| s.parse().unwrap()).collect::<Vec<_>>())
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let inputs: Vec<usize> = std::fs::read_to_string("inputs.txt")?
+        .split(',')
+        .map(|s| s.trim().parse().unwrap())
         .collect();
 
     let result = solve(&inputs, 2020);
@@ -28,4 +25,5 @@ fn main() {
     let result = solve(&inputs, 30000000);
     println!("part 1 result: {}", result);
     assert_eq!(1437692, result);
+    Ok(())
 }
