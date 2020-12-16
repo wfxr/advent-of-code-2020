@@ -1,5 +1,6 @@
 mod day01;
 mod day02;
+mod day16;
 
 use std::error::Error;
 
@@ -8,7 +9,29 @@ struct Solution {
     part2: fn(&str) -> Result<String, Box<dyn Error>>,
 }
 
-const SOLUTIONS: &[Solution] = &[day01::SOLUTION, day02::SOLUTION];
+const FAKE_SOLUTION: Solution = Solution {
+    part1: |_| unimplemented!(),
+    part2: |_| unimplemented!(),
+};
+
+const SOLUTIONS: &[Solution] = &[
+    day01::SOLUTION,
+    day02::SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    FAKE_SOLUTION,
+    day16::SOLUTION,
+];
 
 fn main() -> Result<(), Box<dyn Error>> {
     let day: usize = std::env::args().skip(1).next().ok_or("missing day number")?.parse()?;
