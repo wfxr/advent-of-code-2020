@@ -1,4 +1,4 @@
-use std::io::{self, BufRead};
+use crate::Solution;
 
 #[rustfmt::skip]
 fn seat_id(seat: &str) -> usize {
@@ -7,31 +7,33 @@ fn seat_id(seat: &str) -> usize {
         .0
 }
 
-fn p1_solve(seats: &[String]) -> usize {
-    seats.iter().map(|l| seat_id(l)).max().unwrap()
-}
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let result = input.lines().map(|seat| seat_id(seat)).max().unwrap();
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let mut seats: Vec<_> = input.lines().map(|seat| seat_id(seat)).collect();
+        seats.sort();
+        let result = seats.iter().zip(seats[0]..).find(|&(a, b)| *a != b).unwrap().1;
+        Ok(result.to_string())
+    },
+};
 
-fn p2_solve(seats: &[String]) -> usize {
-    let mut seats: Vec<_> = seats.iter().map(|l| seat_id(l)).collect();
-    seats.sort();
-    let mut seat = seats[0];
-    for &s in &seats {
-        if s != seat {
-            break;
-        }
-        seat += 1;
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn part1() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part1)(&input).unwrap();
+        assert_eq!(res, "994");
     }
-    seat
-}
 
-fn main() {
-    let inputs: Vec<_> = io::stdin().lock().lines().map(|l| l.unwrap()).collect();
-
-    let result = p1_solve(&inputs);
-    println!("part1 result: {}", result);
-    assert_eq!(994, result);
-
-    let result = p2_solve(&inputs);
-    println!("part2 result: {}", result);
-    assert_eq!(741, result);
+    #[test]
+    fn part2() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part2)(&input).unwrap();
+        assert_eq!(res, "741");
+    }
 }

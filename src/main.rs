@@ -2,6 +2,7 @@ mod day01;
 mod day02;
 mod day03;
 mod day04;
+mod day05;
 mod day16;
 
 use std::error::Error;
@@ -21,6 +22,7 @@ const SOLUTIONS: &[Solution] = &[
     day02::SOLUTION,
     day03::SOLUTION,
     day04::SOLUTION,
+    day05::SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
