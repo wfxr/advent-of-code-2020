@@ -1,4 +1,4 @@
-use std::io::{self, Read};
+use crate::Solution;
 
 fn count<F>(answers: &[&str], f: F) -> usize
 where
@@ -11,19 +11,38 @@ where
     questions.iter().filter(|&&n| f(n)).count()
 }
 
-#[rustfmt::skip]
-fn main() {
-    let mut inputs = String::new();
-    io::stdin().read_to_string(&mut inputs).unwrap();
-    let inputs: Vec<Vec<_>> = inputs.split("\n\n")
-        .map(|p| p.split('\n').filter(|s| !s.is_empty()).collect())
-        .collect();
+fn parse_input(input: &str) -> Vec<Vec<&str>> {
+    input
+        .split("\n\n")
+        .map(|p| p.split("\n").filter(|s| !s.is_empty()).collect())
+        .collect()
+}
 
-    let result: usize = inputs.iter().map(|v| count(&v, |n| n > 0)).sum();
-    println!("part 1 result: {}", result);
-    assert_eq!(6416, result);
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let result: usize = parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum();
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let result: usize = parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum();
+        Ok(result.to_string())
+    },
+};
 
-    let result: usize = inputs.iter().map(|v| count(&v, |n| n == v.len())).sum();
-    println!("part 2 result: {}", result);
-    assert_eq!(3050, result);
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn part1() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part1)(&input).unwrap();
+        assert_eq!(res, "6416");
+    }
+
+    #[test]
+    fn part2() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part2)(&input).unwrap();
+        assert_eq!(res, "3050");
+    }
 }
