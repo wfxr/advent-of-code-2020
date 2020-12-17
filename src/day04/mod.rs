@@ -1,7 +1,7 @@
+use crate::Solution;
 use std::collections::HashMap;
-use std::io::{self, Read};
 
-fn p1_valid(passport: &HashMap<&str, &str>) -> bool {
+fn valid1(passport: &HashMap<&str, &str>) -> bool {
     match passport.len() {
         7 => !passport.contains_key("cid"),
         8 => true,
@@ -9,9 +9,8 @@ fn p1_valid(passport: &HashMap<&str, &str>) -> bool {
     }
 }
 
-const EYE_COLORS: [&str; 7] = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
-fn p2_valid(passport: &HashMap<&str, &str>) -> bool {
-    p1_valid(passport)
+fn valid2(passport: &HashMap<&str, &str>) -> bool {
+    valid1(passport)
         && passport.iter().fold(true, |acc, (&k, v)| {
             acc && match k {
                 "byr" => (1920..=2002).contains(&v.parse().unwrap()),
@@ -34,31 +33,55 @@ fn p2_valid(passport: &HashMap<&str, &str>) -> bool {
         })
 }
 
-fn solve(passports: &[HashMap<&str, &str>], func: fn(&HashMap<&str, &str>) -> bool) -> usize {
-    passports.iter().fold(0, |acc, passport| acc + func(passport) as usize)
+fn solve(passports: &[HashMap<&str, &str>], valid: fn(&HashMap<&str, &str>) -> bool) -> usize {
+    passports.iter().fold(0, |acc, passport| acc + valid(passport) as usize)
 }
 
-fn main() {
-    let mut inputs: String = String::new();
-    io::stdin().lock().read_to_string(&mut inputs).unwrap();
-    let inputs: Vec<_> = inputs.split("\n\n").filter(|s| !s.is_empty()).map(parse).collect();
-
-    let result = solve(&inputs, p1_valid);
-    assert_eq!(208, result);
-    println!("part 1 result: {}", result);
-
-    let result = solve(&inputs, p2_valid);
-    assert_eq!(167, result);
-    println!("part 1 result: {}", result);
-}
-
-#[rustfmt::skip]
-fn parse(s: &str) -> HashMap<&str, &str> {
-    s.split_whitespace()
+fn parse_input(input: &str) -> Vec<HashMap<&str, &str>> {
+    input
+        .split("\n\n")
         .filter(|s| !s.is_empty())
-        .map(|item| {
-            let mut split = item.split(":");
-            (split.next().unwrap(), split.next().unwrap())
+        .map(|part| {
+            part.split_whitespace()
+                .filter(|s| !s.is_empty())
+                .map(|item| {
+                    let mut split = item.split(":");
+                    (split.next().unwrap(), split.next().unwrap())
+                })
+                .collect()
         })
         .collect()
+}
+
+const EYE_COLORS: &[&str] = &["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let input = parse_input(input);
+        let result = solve(&input, valid1);
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let result = solve(&input, valid2);
+        Ok(result.to_string())
+    },
+};
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn part1() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part1)(&input).unwrap();
+        assert_eq!(res, "208");
+    }
+
+    #[test]
+    fn part2() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part2)(&input).unwrap();
+        assert_eq!(res, "167");
+    }
 }
