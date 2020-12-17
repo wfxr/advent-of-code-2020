@@ -1,6 +1,6 @@
-use std::io::{self, BufRead};
+use crate::Solution;
 
-fn p1_solve(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
+fn run_once(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
     let mut program: Vec<_> = program
         .iter()
         .enumerate()
@@ -34,25 +34,9 @@ fn p1_solve(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
     (acc, true) // can halt
 }
 
-fn p2_solve(program: &[(String, i64)]) -> i64 {
-    for (i, _) in program
-        .iter()
-        .enumerate()
-        .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
-    {
-        let (result, halt) = p1_solve(program, Some(i));
-        if halt {
-            return result;
-        }
-    }
-    unreachable!()
-}
-
-fn main() {
-    let inputs: Vec<(String, i64)> = io::stdin()
-        .lock()
+fn parse_input(input: &str) -> Vec<(String, i64)> {
+    input
         .lines()
-        .map(|l| l.unwrap())
         .map(|line| {
             let mut it = line.split(' ');
             match (it.next(), it.next()) {
@@ -60,13 +44,29 @@ fn main() {
                 _ => unreachable!(),
             }
         })
-        .collect();
-
-    let (result, _) = p1_solve(&inputs, None);
-    println!("part1 result: {}", result);
-    assert_eq!(1939, result);
-
-    let result = p2_solve(&inputs);
-    println!("part2 result: {}", result);
-    assert_eq!(2212, result);
+        .collect()
 }
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let input = parse_input(input);
+        let (result, ..) = run_once(&input, None);
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let result = input
+            .iter()
+            .enumerate()
+            .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
+            .find_map(|(i, ..)| match run_once(&input, Some(i)) {
+                (result, true) => Some(result),
+                _ => None,
+            })
+            .unwrap();
+        Ok(result.to_string())
+    },
+};
+
+#[cfg(test)]
+crate::solution_test!(1939, 2212);

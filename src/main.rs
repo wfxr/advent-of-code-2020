@@ -5,6 +5,7 @@ mod day04;
 mod day05;
 mod day06;
 mod day07;
+mod day08;
 mod day16;
 #[cfg(test)]
 mod testmacros;
@@ -29,6 +30,7 @@ const SOLUTIONS: &[Solution] = &[
     day05::SOLUTION,
     day06::SOLUTION,
     day07::SOLUTION,
+    day08::SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
