@@ -1,32 +1,47 @@
-use std::io::{self, BufRead};
+use crate::Solution;
 
-fn p1_solve(map: &[&[char]], (dx, dy): (usize, usize)) -> usize {
-    let mut x = 0;
-    return map.iter().step_by(dy).fold(0, |acc, row| {
-        let acc = acc + (row[x] == '#') as usize;
-        x = (x + dx) % row.len();
-        acc
-    });
+fn tree_count(map: &[Vec<char>], (dx, dy): (usize, usize)) -> usize {
+    map.iter()
+        .step_by(dy)
+        .fold((0, 0), |(count, pos), row| {
+            (count + (row[pos] == '#') as usize, (pos + dx) % row.len())
+        })
+        .0
 }
 
-fn p2_solve(map: &[&[char]], slopes: &[(usize, usize)]) -> usize {
-    slopes.iter().fold(1, |acc, &direction| acc * p1_solve(map, direction))
+fn parse_input(input: &str) -> Vec<Vec<char>> {
+    input.lines().map(|s| s.chars().collect()).collect()
 }
 
-fn main() {
-    #[rustfmt::skip]
-    let inputs: Vec<Vec<_>> = io::stdin().lock().lines()
-        .map(|l| l.unwrap())
-        .map(|line| line.chars().collect())
-        .collect();
-    let inputs: Vec<&[char]> = inputs.iter().map(|v| v.as_ref()).collect();
+const P1_SLOPE: (usize, usize) = (3, 1);
+const P2_SLOPES: &[(usize, usize)] = &[(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
 
-    let rs = p1_solve(&inputs, (3, 1));
-    println!("part 1 result: {}", rs);
-    assert_eq!(237, rs);
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let result = tree_count(&parse_input(input), P1_SLOPE);
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let result = P2_SLOPES.iter().fold(1, |acc, &dir| acc * tree_count(&input, dir));
+        Ok(result.to_string())
+    },
+};
 
-    let slopes = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
-    let rs = p2_solve(&inputs, &slopes);
-    println!("part 2 result: {}", rs);
-    assert_eq!(2106818610, rs);
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn part1() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part1)(&input).unwrap();
+        assert_eq!(res, "237");
+    }
+
+    #[test]
+    fn part2() {
+        let input = include_str!("input");
+        let res = (SOLUTION.part2)(&input).unwrap();
+        assert_eq!(res, "2106818610");
+    }
 }

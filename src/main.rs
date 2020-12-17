@@ -1,5 +1,6 @@
 mod day01;
 mod day02;
+mod day03;
 mod day16;
 
 use std::error::Error;
@@ -17,7 +18,7 @@ const FAKE_SOLUTION: Solution = Solution {
 const SOLUTIONS: &[Solution] = &[
     day01::SOLUTION,
     day02::SOLUTION,
-    FAKE_SOLUTION,
+    day03::SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
