@@ -5,6 +5,8 @@ mod day04;
 mod day05;
 mod day06;
 mod day16;
+#[cfg(test)]
+mod testmacros;
 
 use std::error::Error;
 

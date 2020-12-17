@@ -30,19 +30,4 @@ pub(super) const SOLUTION: Solution = Solution {
 };
 
 #[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn part1() {
-        let input = include_str!("input");
-        let res = (SOLUTION.part1)(&input).unwrap();
-        assert_eq!(res, "6416");
-    }
-
-    #[test]
-    fn part2() {
-        let input = include_str!("input");
-        let res = (SOLUTION.part2)(&input).unwrap();
-        assert_eq!(res, "3050");
-    }
-}
+crate::solution_test!(6416, 3050);

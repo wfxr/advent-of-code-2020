@@ -21,19 +21,4 @@ pub(super) const SOLUTION: Solution = Solution {
 };
 
 #[cfg(test)]
-mod test {
-    use super::*;
-    #[test]
-    fn part1() {
-        let input = include_str!("input");
-        let res = (SOLUTION.part1)(&input).unwrap();
-        assert_eq!(res, "994");
-    }
-
-    #[test]
-    fn part2() {
-        let input = include_str!("input");
-        let res = (SOLUTION.part2)(&input).unwrap();
-        assert_eq!(res, "741");
-    }
-}
+crate::solution_test!(994, 741);
