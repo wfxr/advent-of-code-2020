@@ -1,43 +1,31 @@
 use crate::Solution;
-use Expr::{Operand, Operator};
-use Operation::{Add, Mul, Par};
+use ExprNode::{Operand, Operator};
 
 #[derive(Debug)]
-enum Expr {
+enum ExprNode {
     Operand(i64),
-    Operator(Operation),
+    Operator(char),
 }
 
-#[derive(Debug)]
-enum Operation {
-    Par,
-    Mul,
-    Add,
-}
-
-fn to_post_expr(expr: &str, prec: fn(&Operation) -> usize) -> Vec<Expr> {
+fn to_postfix(expr: &str, prec: fn(char) -> u8) -> Vec<ExprNode> {
     let mut st = vec![];
     let mut rs = vec![];
     for c in expr.chars() {
         match c {
             ' ' => continue,
             '0'..='9' => rs.push(Operand(c as i64 - '0' as i64)),
-            '(' => st.push(Operator(Par)),
+            '(' => st.push(Operator(c)),
             ')' => loop {
                 match st.pop() {
-                    Some(Operator(Par)) | None => break,
+                    Some(Operator('(')) | None => break,
                     Some(op) => rs.push(op),
                 };
             },
             op => {
-                let op: Operation = match op {
-                    '+' => Add,
-                    '*' => Mul,
-                    _ => panic!(format!("unexpected operator: '{}'", c)),
-                };
                 loop {
                     match st.last() {
-                        Some(Operator(top)) if prec(&top) >= prec(&op) => rs.push(st.pop().unwrap()),
+                        Some(&Operator('(')) => break,
+                        Some(&Operator(top)) if prec(top) <= prec(op) => rs.push(st.pop().unwrap()),
                         _ => break,
                     }
                 }
@@ -49,29 +37,29 @@ fn to_post_expr(expr: &str, prec: fn(&Operation) -> usize) -> Vec<Expr> {
     rs
 }
 
-fn evaluate(expr: &[Expr]) -> i64 {
-    let mut st: Vec<i64> = vec![];
-    for c in expr {
-        match c {
-            &Operand(c) => st.push(c),
+fn evaluate(expr: &[ExprNode]) -> i64 {
+    let mut st = vec![];
+    for node in expr {
+        match node {
+            &Operand(val) => st.push(val),
             operator => {
-                let (a, b) = (st.pop().unwrap(), st.pop().unwrap());
-                let r = match operator {
-                    Operator(Add) => a + b,
-                    Operator(Mul) => a * b,
+                let (rhs, lhs) = (st.pop().unwrap(), st.pop().unwrap());
+                let val = match operator {
+                    Operator('+') => lhs + rhs,
+                    Operator('*') => lhs * rhs,
                     _ => panic!(format!("unexpected operator: {:?}", operator)),
                 };
-                st.push(r);
+                st.push(val);
             }
         }
     }
     st[0]
 }
 
-fn solve(input: &str, prec: fn(&Operation) -> usize) -> i64 {
+fn solve(input: &str, prec: fn(char) -> u8) -> i64 {
     input
         .lines()
-        .map(|expr| to_post_expr(expr, prec))
+        .map(|expr| to_postfix(expr, prec))
         .map(|expr| evaluate(&expr))
         .sum()
 }
@@ -79,17 +67,17 @@ fn solve(input: &str, prec: fn(&Operation) -> usize) -> i64 {
 pub(super) const SOLUTION: Solution = Solution {
     part1: |input| {
         let result = solve(input, |op| match op {
-            Par => 0,
-            Add => 1,
-            Mul => 1,
+            '+' => 0,
+            '*' => 0,
+            _ => panic!(format!("unexpected operator: '{}'", op)),
         });
         Ok(result.to_string())
     },
     part2: |input| {
         let result = solve(input, |op| match op {
-            Par => 0,
-            Add => 2,
-            Mul => 1,
+            '+' => 0,
+            '*' => 1,
+            _ => panic!(format!("unexpected operator: '{}'", op)),
         });
         Ok(result.to_string())
     },
