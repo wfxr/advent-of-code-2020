@@ -12,6 +12,7 @@ mod day17;
 mod testmacros;
 
 use std::error::Error;
+use std::time::{Duration, Instant};
 
 struct Solution {
     part1: fn(&str) -> Result<String, Box<dyn Error>>,
@@ -39,12 +40,18 @@ const SOLUTIONS: &[Solution] = &[
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
-    FAKE_SOLUTION,
-    FAKE_SOLUTION,
-    FAKE_SOLUTION,
     day16::SOLUTION,
     day17::SOLUTION,
 ];
+
+fn measure<T, F>(f: F) -> (Duration, T)
+where
+    F: FnOnce() -> T,
+{
+    let start = Instant::now();
+    let r = f();
+    (Instant::now() - start, r)
+}
 
 fn main() -> Result<(), Box<dyn Error>> {
     let day: usize = std::env::args().skip(1).next().ok_or("missing day number")?.parse()?;
@@ -52,7 +59,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let Solution { part1, part2 } = SOLUTIONS.get(day - 1).ok_or("day number out of range")?;
     let input = std::fs::read_to_string(format!("src/day{:02}/input", day))?;
 
-    println!("part 1: {}", part1(&input)?);
-    println!("part 2: {}", part2(&input)?);
+    let (t, result) = measure(|| part1(&input));
+    println!("part 1: {}, time used: {:?}", result?, t);
+
+    let (t, result) = measure(|| part2(&input));
+    println!("part 2: {}, time used {:?}", result?, t);
     Ok(())
 }
