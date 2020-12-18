@@ -8,6 +8,7 @@ mod day07;
 mod day08;
 mod day16;
 mod day17;
+mod day18;
 #[cfg(test)]
 mod testmacros;
 
@@ -42,6 +43,7 @@ const SOLUTIONS: &[Solution] = &[
     FAKE_SOLUTION,
     day16::SOLUTION,
     day17::SOLUTION,
+    day18::SOLUTION,
 ];
 
 fn measure<T, F>(f: F) -> (Duration, T)
