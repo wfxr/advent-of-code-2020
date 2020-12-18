@@ -14,8 +14,8 @@ fn parse_input(input: &str) -> (Vec<Rule>, Vec<usize>, Vec<Vec<usize>>) {
                 .split(|c: char| !c.is_digit(10))
                 .filter_map(|s| s.trim().parse().ok())
                 .collect();
-            match &ranges[..] {
-                &[n1, n2, n3, n4] => (field, n1..=n2, n3..=n4),
+            match ranges[..] {
+                [n1, n2, n3, n4] => (field, n1..=n2, n3..=n4),
                 _ => panic!("parse failed: {}", line),
             }
         })
@@ -40,21 +40,18 @@ fn solve_mapping(matrix: &mut Vec<Vec<bool>>) -> Vec<usize> {
     let mut mapping = vec![0; n];
     let (mut fields, mut matched) = (vec![false; n], 0);
     while matched < n {
-        for j in 0..n {
-            if fields[j] {
+        for (j, field) in fields.iter_mut().enumerate() {
+            if *field {
                 continue;
             }
             let mut it = (0..n).map(|i| (i, matrix[i][j])).filter(|&(_, x)| x);
-            match (it.next(), it.next()) {
-                (Some((i, _)), None) => {
-                    matrix[i].iter_mut().for_each(|x| *x = false);
-                    matrix[i][j] = true;
-                    mapping[i] = j;
-                    fields[j] = true;
-                    matched += 1;
-                }
-                _ => {}
-            };
+            if let (Some((i, _)), None) = (it.next(), it.next()) {
+                matrix[i].iter_mut().for_each(|x| *x = false);
+                matrix[i][j] = true;
+                mapping[i] = j;
+                *field = true;
+                matched += 1;
+            }
         }
     }
     mapping

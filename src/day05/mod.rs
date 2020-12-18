@@ -14,7 +14,7 @@ pub(super) const SOLUTION: Solution = Solution {
     },
     part2: |input| {
         let mut seats: Vec<_> = input.lines().map(|seat| seat_id(seat)).collect();
-        seats.sort();
+        seats.sort_unstable();
         let result = seats.iter().zip(seats[0]..).find(|&(a, b)| *a != b).unwrap().1;
         Ok(result.to_string())
     },

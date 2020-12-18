@@ -54,7 +54,7 @@ where
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let day: usize = std::env::args().skip(1).next().ok_or("missing day number")?.parse()?;
+    let day: usize = std::env::args().nth(1).ok_or("missing day number")?.parse()?;
 
     let Solution { part1, part2 } = SOLUTIONS.get(day - 1).ok_or("day number out of range")?;
     let input = std::fs::read_to_string(format!("src/day{:02}/input", day))?;

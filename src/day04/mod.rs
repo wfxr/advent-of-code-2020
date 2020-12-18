@@ -25,7 +25,7 @@ fn valid2(passport: &HashMap<&str, &str>) -> bool {
                         _ => false,
                     }
                 }
-                "hcl" => v.len() == 7 && v.starts_with("#") && v[1..].chars().all(|c| c.is_digit(16)),
+                "hcl" => v.len() == 7 && v.starts_with('#') && v[1..].chars().all(|c| c.is_digit(16)),
                 "ecl" => EYE_COLORS.contains(v),
                 "pid" => v.len() == 9 && v.chars().all(|c| c.is_digit(10)),
                 _ => true,
@@ -45,7 +45,7 @@ fn parse_input(input: &str) -> Vec<HashMap<&str, &str>> {
             part.split_whitespace()
                 .filter(|s| !s.is_empty())
                 .map(|item| {
-                    let mut split = item.split(":");
+                    let mut split = item.split(':');
                     (split.next().unwrap(), split.next().unwrap())
                 })
                 .collect()

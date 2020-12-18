@@ -17,7 +17,7 @@ pub(super) const SOLUTION: Solution = Solution {
                 encountered.contains(&(TARGET - x))
             })
             .map(|&x| Ok((x * (TARGET - x)).to_string()))
-            .ok_or_else(|| "no result found")?
+            .ok_or("no result found")?
     },
     part2: |input| {
         let nums = parse_input(input)?;
@@ -30,7 +30,7 @@ pub(super) const SOLUTION: Solution = Solution {
                 }
             }
         }
-        return Err("no result found")?;
+        Err("no result found".into())
     },
 };
 

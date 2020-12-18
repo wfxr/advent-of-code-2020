@@ -14,7 +14,7 @@ where
 fn parse_input(input: &str) -> Vec<Vec<&str>> {
     input
         .split("\n\n")
-        .map(|p| p.split("\n").filter(|s| !s.is_empty()).collect())
+        .map(|p| p.split('\n').filter(|s| !s.is_empty()).collect())
         .collect()
 }
 
