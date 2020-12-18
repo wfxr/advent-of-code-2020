@@ -15,16 +15,7 @@ enum Operation {
     Add,
 }
 
-impl Operation {
-    fn prec(&self) -> u8 {
-        match self {
-            Par => 0,
-            Add => 1,
-            Mul => 1,
-        }
-    }
-}
-fn to_post_expr(expr: &str) -> Vec<Expr> {
+fn to_post_expr(expr: &str, prec: fn(&Operation) -> usize) -> Vec<Expr> {
     let mut st = vec![];
     let mut rs = vec![];
     for c in expr.chars() {
@@ -46,7 +37,7 @@ fn to_post_expr(expr: &str) -> Vec<Expr> {
                 };
                 loop {
                     match st.last() {
-                        Some(Operator(top)) if top.prec() >= op.prec() => rs.push(st.pop().unwrap()),
+                        Some(Operator(top)) if prec(&top) >= prec(&op) => rs.push(st.pop().unwrap()),
                         _ => break,
                     }
                 }
@@ -77,20 +68,32 @@ fn evaluate(expr: &[Expr]) -> i64 {
     st[0]
 }
 
+fn solve(input: &str, prec: fn(&Operation) -> usize) -> i64 {
+    input
+        .lines()
+        .map(|expr| to_post_expr(expr, prec))
+        .map(|expr| evaluate(&expr))
+        .sum()
+}
+
 pub(super) const SOLUTION: Solution = Solution {
     part1: |input| {
-        let result: i64 = input
-            .lines()
-            .map(|expr| to_post_expr(expr))
-            .map(|expr| evaluate(&expr))
-            .sum();
-
+        let result = solve(input, |op| match op {
+            Par => 0,
+            Add => 1,
+            Mul => 1,
+        });
         Ok(result.to_string())
     },
     part2: |input| {
-        unimplemented!() //
+        let result = solve(input, |op| match op {
+            Par => 0,
+            Add => 2,
+            Mul => 1,
+        });
+        Ok(result.to_string())
     },
 };
 
 #[cfg(test)]
-crate::solution_test!(16332191652452, 0);
+crate::solution_test!(16332191652452, 351175492232654);
