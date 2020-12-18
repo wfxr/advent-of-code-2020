@@ -7,6 +7,7 @@ mod day06;
 mod day07;
 mod day08;
 mod day16;
+mod day17;
 #[cfg(test)]
 mod testmacros;
 
@@ -42,6 +43,7 @@ const SOLUTIONS: &[Solution] = &[
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     day16::SOLUTION,
+    day17::SOLUTION,
 ];
 
 fn main() -> Result<(), Box<dyn Error>> {
