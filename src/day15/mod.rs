@@ -1,3 +1,5 @@
+use crate::Solution;
+
 #[rustfmt::skip]
 fn solve(nums: &[usize], nth: usize) -> usize {
     let mut position = vec![0; nth];
@@ -9,17 +11,14 @@ fn solve(nums: &[usize], nth: usize) -> usize {
     })
 }
 
-fn main() {
-    let inputs: Vec<usize> = include_str!("../inputs.txt")
-        .split(',')
-        .map(|s| s.trim().parse().unwrap())
-        .collect();
-
-    let result = solve(&inputs, 2020);
-    println!("part 1 result: {}", result);
-    assert_eq!(866, result);
-
-    let result = solve(&inputs, 30_000_000);
-    println!("part 2 result: {}", result);
-    assert_eq!(1437692, result);
+fn parse_input(input: &str) -> Vec<usize> {
+    input.split(',').map(|s| s.trim().parse().unwrap()).collect()
 }
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| Ok(solve(&parse_input(input), 2020).to_string()),
+    part2: |input| Ok(solve(&parse_input(input), 30_000_000).to_string()),
+};
+
+#[cfg(test)]
+crate::solution_test!(866, 1437692);
