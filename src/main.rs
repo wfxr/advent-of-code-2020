@@ -16,6 +16,7 @@ mod day15;
 mod day16;
 mod day17;
 mod day18;
+
 #[cfg(test)]
 mod testmacros;
 
@@ -26,11 +27,6 @@ struct Solution {
     part1: fn(&str) -> Result<String, Box<dyn Error>>,
     part2: fn(&str) -> Result<String, Box<dyn Error>>,
 }
-
-const FAKE_SOLUTION: Solution = Solution {
-    part1: |_| unimplemented!(),
-    part2: |_| unimplemented!(),
-};
 
 const SOLUTIONS: &[Solution] = &[
     day01::SOLUTION,
