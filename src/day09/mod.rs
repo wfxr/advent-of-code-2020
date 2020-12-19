@@ -1,20 +1,10 @@
+use crate::Solution;
 use std::cmp::Ordering;
 use std::collections::HashSet;
-use std::io::{self, BufRead};
 
 fn two_sum(nums: &[i64], target: i64) -> bool {
     let nums: HashSet<_> = nums.iter().collect();
     nums.iter().any(|&x| nums.contains(&(target - x)))
-}
-
-fn p1_solve(nums: &[i64]) -> i64 {
-    *nums
-        .iter()
-        .enumerate()
-        .skip(25)
-        .find(|(i, &x)| !two_sum(&nums[..*i], x))
-        .unwrap()
-        .1
 }
 
 fn contiguous_sum(nums: &[i64], target: i64) -> Option<(i64, i64)> {
@@ -27,10 +17,20 @@ fn contiguous_sum(nums: &[i64], target: i64) -> Option<(i64, i64)> {
         match sum.cmp(&target) {
             Ordering::Equal => return Some((min, max)),
             Ordering::Greater => return None,
-            _ => {}
+            _ => continue,
         }
     }
     None
+}
+
+fn p1_solve(nums: &[i64]) -> i64 {
+    *nums
+        .iter()
+        .enumerate()
+        .skip(25)
+        .find(|(i, &x)| !two_sum(&nums[..*i], x))
+        .unwrap()
+        .1
 }
 
 fn p2_solve(nums: &[i64]) -> i64 {
@@ -43,18 +43,22 @@ fn p2_solve(nums: &[i64]) -> i64 {
     unreachable!()
 }
 
-fn main() {
-    let inputs: Vec<i64> = io::stdin()
-        .lock()
-        .lines()
-        .map(|l| l.unwrap().parse().unwrap())
-        .collect();
-
-    let result = p1_solve(&inputs);
-    println!("part1 result : {}", result);
-    assert_eq!(1309761972, result);
-
-    let result = p2_solve(&inputs);
-    println!("part2 result : {}", result);
-    assert_eq!(0, result);
+fn parse_input(input: &str) -> Vec<i64> {
+    input.lines().map(|line| line.parse().unwrap()).collect()
 }
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let input = parse_input(input);
+        let result = p1_solve(&input);
+        Ok(result.to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let result = p2_solve(&input);
+        Ok(result.to_string())
+    },
+};
+
+#[cfg(test)]
+crate::solution_test!(1309761972, 177989832);
