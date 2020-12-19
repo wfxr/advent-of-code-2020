@@ -30,13 +30,17 @@ pub(super) const SOLUTION: Solution = Solution {
     part1: |input| {
         let result = solve(input, |seats, (i, j)| {
             // self included
-            let mut sum = 0;
-            for i in if i == 0 { 0 } else { i - 1 }..seats.len().min(i + 2) {
-                for j in if j == 0 { 0 } else { j - 1 }..seats[i].len().min(j + 2) {
-                    sum += (seats[i][j] == '#') as usize
-                }
-            }
-            sum
+            seats
+                .iter()
+                .take((i + 2).min(seats.len()))
+                .skip(i.checked_sub(1).unwrap_or(0))
+                .flat_map(|row| {
+                    row.iter()
+                        .take((j + 2).min(row.len()))
+                        .skip(j.checked_sub(1).unwrap_or(0))
+                })
+                .filter(|&&seat| seat == '#')
+                .count()
         });
         Ok(result.to_string())
     },
