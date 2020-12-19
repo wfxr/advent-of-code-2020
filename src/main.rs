@@ -9,6 +9,7 @@ mod day08;
 mod day09;
 mod day10;
 mod day11;
+mod day12;
 mod day16;
 mod day17;
 mod day18;
@@ -40,7 +41,7 @@ const SOLUTIONS: &[Solution] = &[
     day09::SOLUTION,
     day10::SOLUTION,
     day11::SOLUTION,
-    FAKE_SOLUTION,
+    day12::SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,
     FAKE_SOLUTION,

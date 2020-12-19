@@ -1,4 +1,4 @@
-use std::io::{self, BufRead};
+use crate::Solution;
 
 struct Point {
     x: i64,
@@ -38,55 +38,51 @@ impl Point {
     }
 }
 
-fn p1_solve(ins: &[(char, i64)]) -> usize {
-    let mut ship = Point::new(0, 0);
-    let mut direction = Point::new(1, 0);
-    for &(ins, v) in ins {
-        match ins {
-            'N' => ship.y += v,
-            'S' => ship.y -= v,
-            'E' => ship.x += v,
-            'W' => ship.x -= v,
-            'L' => direction = direction.turn(v),
-            'R' => direction = direction.turn(360 - v),
-            'F' => ship = ship.add(&direction.mul(v)),
-            _ => unreachable!(),
-        }
-    }
-    ship.manhattan()
-}
-
-fn p2_solve(ins: &[(char, i64)]) -> usize {
-    let mut waypoint = Point::new(10, 1);
-    let mut ship = Point::new(0, 0);
-    for &(ins, v) in ins {
-        match ins {
-            'N' => waypoint.y += v,
-            'S' => waypoint.y -= v,
-            'E' => waypoint.x += v,
-            'W' => waypoint.x -= v,
-            'L' => waypoint = waypoint.turn(v),
-            'R' => waypoint = waypoint.turn(360 - v),
-            'F' => ship = ship.add(&waypoint.mul(v)),
-            _ => unreachable!("instruction: {}", ins),
-        }
-    }
-    ship.manhattan()
-}
-
-fn main() {
-    let inputs: Vec<(char, i64)> = io::stdin()
-        .lock()
+fn parse_input(input: &str) -> Vec<(char, i64)> {
+    input
         .lines()
-        .map(|l| l.unwrap())
         .map(|line| (line.chars().next().unwrap(), line[1..].parse().unwrap()))
-        .collect();
-
-    let result = p1_solve(&inputs);
-    println!("part 1 result: {}", result);
-    assert_eq!(1956, result);
-
-    let result = p2_solve(&inputs);
-    println!("part 2 result: {}", result);
-    assert_eq!(126797, result);
+        .collect()
 }
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let input = parse_input(input);
+        let mut ship = Point::new(0, 0);
+        let mut direction = Point::new(1, 0);
+        for &(ins, v) in &input {
+            match ins {
+                'N' => ship.y += v,
+                'S' => ship.y -= v,
+                'E' => ship.x += v,
+                'W' => ship.x -= v,
+                'L' => direction = direction.turn(v),
+                'R' => direction = direction.turn(360 - v),
+                'F' => ship = ship.add(&direction.mul(v)),
+                _ => unreachable!("instruction: {}", ins),
+            }
+        }
+        Ok(ship.manhattan().to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let mut waypoint = Point::new(10, 1);
+        let mut ship = Point::new(0, 0);
+        for &(ins, v) in &input {
+            match ins {
+                'N' => waypoint.y += v,
+                'S' => waypoint.y -= v,
+                'E' => waypoint.x += v,
+                'W' => waypoint.x -= v,
+                'L' => waypoint = waypoint.turn(v),
+                'R' => waypoint = waypoint.turn(360 - v),
+                'F' => ship = ship.add(&waypoint.mul(v)),
+                _ => unreachable!("instruction: {}", ins),
+            }
+        }
+        Ok(ship.manhattan().to_string())
+    },
+};
+
+#[cfg(test)]
+crate::solution_test!(1956, 126797);
