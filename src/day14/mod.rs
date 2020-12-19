@@ -1,20 +1,10 @@
+use crate::Solution;
 use std::collections::HashMap;
-use std::io::{self, Read};
 
 fn parse_mask(mask: &str, target: char) -> u64 {
     mask.chars()
         .map(|c| if c == target { 1 } else { 0 })
         .fold(0, |x, b| (x << 1) + b)
-}
-
-#[rustfmt::skip]
-fn p1_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
-    inputs.iter()
-        .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let (mask0, mask1) = (!parse_mask(mask, '0'), parse_mask(mask, '1'));
-            acc.extend(lines.iter().map(|(mem, val)| (mem, val & mask0 | mask1)));
-            acc
-        }).values().sum()
 }
 
 fn update_memory(mask: u64, addr: u64, val: u64, memory: &mut HashMap<u64, u64>) {
@@ -28,21 +18,9 @@ fn update_memory(mask: u64, addr: u64, val: u64, memory: &mut HashMap<u64, u64>)
     }
 }
 
-#[rustfmt::skip]
-fn p2_solve(inputs: &[(&str, Vec<(u64, u64)>)]) -> u64 {
-    inputs.iter()
-        .fold(HashMap::new(), |mut acc, (mask, lines)| {
-            let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
-            lines.iter().for_each(|&(mem, val)| update_memory(maskx, mem | mask1, val, &mut acc));
-            acc
-        }).values().sum()
-}
-
-#[rustfmt::skip]
-fn main() {
-    let mut inputs = String::new();
-    io::stdin().read_to_string(&mut inputs).unwrap();
-    let inputs: Vec<_> = inputs.split("mask = ")
+fn parse_input(input: &str) -> Vec<(&str, Vec<(u64, u64)>)> {
+    input
+        .split("mask = ")
         .map(|s| {
             let mut it = s.split('\n');
             let mask = it.next().unwrap().trim();
@@ -57,13 +35,31 @@ fn main() {
                 .collect();
             (mask, lines)
         })
-        .collect();
-
-    let result = p1_solve(&inputs);
-    println!("part 1 result: {}", result);
-    assert_eq!(5902420735773, result);
-
-    let result = p2_solve(&inputs);
-    println!("part 2 result: {}", result);
-    assert_eq!(3801988250775, result);
+        .collect()
 }
+
+pub(super) const SOLUTION: Solution = Solution {
+    part1: |input| {
+        let input = parse_input(input);
+        let result = input.iter().fold(HashMap::new(), |mut acc, (mask, lines)| {
+            let (mask0, mask1) = (!parse_mask(mask, '0'), parse_mask(mask, '1'));
+            acc.extend(lines.iter().map(|(mem, val)| (mem, val & mask0 | mask1)));
+            acc
+        });
+        Ok(result.values().sum::<u64>().to_string())
+    },
+    part2: |input| {
+        let input = parse_input(input);
+        let result = input.iter().fold(HashMap::new(), |mut acc, (mask, lines)| {
+            let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
+            lines
+                .iter()
+                .for_each(|&(mem, val)| update_memory(maskx, mem | mask1, val, &mut acc));
+            acc
+        });
+        Ok(result.values().sum::<u64>().to_string())
+    },
+};
+
+#[cfg(test)]
+crate::solution_test!(5902420735773, 3801988250775);
