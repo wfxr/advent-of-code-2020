@@ -33,12 +33,8 @@ pub(super) const SOLUTION: Solution = Solution {
             seats
                 .iter()
                 .take((i + 2).min(seats.len()))
-                .skip(i.checked_sub(1).unwrap_or(0))
-                .flat_map(|row| {
-                    row.iter()
-                        .take((j + 2).min(row.len()))
-                        .skip(j.checked_sub(1).unwrap_or(0))
-                })
+                .skip(i.saturating_sub(1))
+                .flat_map(|row| row.iter().take((j + 2).min(row.len())).skip(j.saturating_sub(1)))
                 .filter(|&&seat| seat == '#')
                 .count()
         });
