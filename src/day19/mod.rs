@@ -8,15 +8,15 @@ enum Rule {
     Or(Box<Rule>, Box<Rule>),
 }
 
-fn matches<'a>(rule: &Rule, rules: &'a [Rule], rest: &'a [char]) -> Vec<&'a [char]> {
+fn matches<'a>(rule: &Rule, rules: &[Rule], rest: &'a [char]) -> Vec<&'a [char]> {
     if rest.is_empty() {
         return vec![];
     }
     match rule {
         Rule::Ref(i) => matches(&rules[*i], rules, rest),
-        Rule::Ch(c) => match &rest[0] {
-            next if next == c => vec![&rest[1..]],
-            _ => vec![],
+        Rule::Ch(c) => match rest[0] == *c {
+            true => vec![&rest[1..]],
+            false => vec![],
         },
         Rule::Or(a, b) => matches(a, rules, rest)
             .into_iter()
@@ -39,7 +39,7 @@ fn matches<'a>(rule: &Rule, rules: &'a [Rule], rest: &'a [char]) -> Vec<&'a [cha
 fn parse_base_rule(s: &str) -> Rule {
     match s.parse() {
         Ok(i) => Ref(i),
-        _ => Ch(s.chars().nth(1).expect(&format!("s: '{}'", s))),
+        _ => Ch(s.chars().nth(1).unwrap_or_else(|| panic!("s: '{}'", s))),
     }
 }
 
@@ -81,7 +81,16 @@ fn part1(input: &str) -> usize {
 }
 
 fn part2(input: &str) -> usize {
-    unimplemented!()
+    let (mut rules, msgs) = parse_input(input);
+    rules[8] = Or(Box::new(Ref(42)), Box::new(And2(Box::new(Ref(42)), Box::new(Ref(8)))));
+    rules[11] = Or(
+        Box::new(And2(Box::new(Ref(42)), Box::new(Ref(31)))),
+        Box::new(And3(Box::new(Ref(42)), Box::new(Ref(11)), Box::new(Ref(31)))),
+    );
+    msgs.iter()
+        .map(|msg| msg.chars().collect::<Vec<_>>())
+        .filter(|msg| matches(&rules[0], &rules, &msg).into_iter().any(|s| s.is_empty()))
+        .count()
 }
 
 crate::solution!(part1 => 0, part2 => 0);
