@@ -16,6 +16,31 @@ mod day15;
 mod day16;
 mod day17;
 mod day18;
+// +MODS+
+
+fn get_solution(index: &str) -> Option<Solution> {
+    match index {
+        "day01" => day01::SOLUTION.into(),
+        "day02" => day02::SOLUTION.into(),
+        "day03" => day03::SOLUTION.into(),
+        "day04" => day04::SOLUTION.into(),
+        "day05" => day05::SOLUTION.into(),
+        "day06" => day06::SOLUTION.into(),
+        "day07" => day07::SOLUTION.into(),
+        "day08" => day08::SOLUTION.into(),
+        "day09" => day09::SOLUTION.into(),
+        "day10" => day10::SOLUTION.into(),
+        "day11" => day11::SOLUTION.into(),
+        "day12" => day12::SOLUTION.into(),
+        "day13" => day13::SOLUTION.into(),
+        "day14" => day14::SOLUTION.into(),
+        "day15" => day15::SOLUTION.into(),
+        "day16" => day16::SOLUTION.into(),
+        "day17" => day17::SOLUTION.into(),
+        "day18" => day18::SOLUTION.into(),
+        _ => None, // +SOLUTIONS+
+    }
+}
 
 #[cfg(test)]
 mod testmacros;
@@ -28,32 +53,11 @@ struct Solution {
     part2: fn(&str) -> Result<String, Box<dyn Error>>,
 }
 
-const SOLUTIONS: &[Solution] = &[
-    day01::SOLUTION,
-    day02::SOLUTION,
-    day03::SOLUTION,
-    day04::SOLUTION,
-    day05::SOLUTION,
-    day06::SOLUTION,
-    day07::SOLUTION,
-    day08::SOLUTION,
-    day09::SOLUTION,
-    day10::SOLUTION,
-    day11::SOLUTION,
-    day12::SOLUTION,
-    day13::SOLUTION,
-    day14::SOLUTION,
-    day15::SOLUTION,
-    day16::SOLUTION,
-    day17::SOLUTION,
-    day18::SOLUTION,
-]; // +SOLUTIONS
-
 fn main() -> Result<(), Box<dyn Error>> {
-    let day: usize = std::env::args().nth(1).ok_or("missing day number")?.parse()?;
+    let index = std::env::args().nth(1).ok_or("missing solution index")?;
 
-    let Solution { part1, part2 } = SOLUTIONS.get(day - 1).ok_or("day number out of range")?;
-    let input = std::fs::read_to_string(format!("src/day{:02}/input", day))?;
+    let Solution { part1, part2 } = get_solution(&index).ok_or("solution not found")?;
+    let input = std::fs::read_to_string(format!("src/{}/input", index))?;
 
     let (t, result) = measure(|| part1(&input));
     println!("part 1: {}, time used: {:?}", result?, t);
