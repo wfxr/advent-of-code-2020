@@ -1,4 +1,3 @@
-use crate::Solution;
 use std::ops::RangeInclusive;
 
 type Rule = (String, RangeInclusive<usize>, RangeInclusive<usize>);
@@ -58,34 +57,30 @@ fn solve_mapping(matrix: &mut Vec<Vec<bool>>) -> Vec<usize> {
 }
 
 #[rustfmt::skip]
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let (rules, _, nearby_tickets) = parse_input(input);
-        let result = nearby_tickets.iter().flatten()
-            .fold(0, |acc, &v| acc + !any_matching(&rules, &v) as usize * v);
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let (rules, ticket, nearby_tickets) = parse_input(input);
-        let valid_tickets: Vec<_> = nearby_tickets.iter()
-            .filter(|ticket| ticket.iter().all(|v| any_matching(&rules, v)))
-            .collect();
-        let mut matrix: Vec<Vec<_>> = rules.iter()
-            .map(|rule| {
-                (0..rules.len())
-                    .map(|i| valid_tickets.iter().all(|ticket| matching(rule, &ticket[i])))
-                    .collect()
-            })
-            .collect();
-        let mapping = solve_mapping(&mut matrix);
-        let result = rules
-            .iter()
-            .enumerate()
-            .filter(|(_, (field, ..))| field.starts_with("departure"))
-            .fold(1, |acc, (i, ..)| acc * ticket[mapping[i]]);
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> usize {
+    let (rules, _, nearby_tickets) = parse_input(input);
+    nearby_tickets.iter()
+        .flatten()
+        .fold(0, |acc, &v| acc + !any_matching(&rules, &v) as usize * v)
+}
 
-#[cfg(test)]
-crate::solution_test!(32842, 2628667251989);
+#[rustfmt::skip]
+fn part2(input: &str) -> usize {
+    let (rules, ticket, nearby_tickets) = parse_input(input);
+    let valid_tickets: Vec<_> = nearby_tickets.iter()
+        .filter(|ticket| ticket.iter().all(|v| any_matching(&rules, v)))
+        .collect();
+    let mut matrix: Vec<Vec<_>> = rules.iter()
+        .map(|rule| {
+            (0..rules.len())
+                .map(|i| valid_tickets.iter().all(|ticket| matching(rule, &ticket[i])))
+                .collect()
+        })
+        .collect();
+    let mapping = solve_mapping(&mut matrix);
+    rules.iter().enumerate()
+        .filter(|(_, (field, ..))| field.starts_with("departure"))
+        .fold(1, |acc, (i, ..)| acc * ticket[mapping[i]])
+}
+
+crate::solution!(part1 => 32842, part2 => 2628667251989);

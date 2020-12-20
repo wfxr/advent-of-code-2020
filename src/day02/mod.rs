@@ -1,5 +1,3 @@
-use crate::Solution;
-
 fn parse_input(input: &str) -> Vec<(usize, usize, char, &str)> {
     input
         .lines()
@@ -14,20 +12,16 @@ fn parse_input(input: &str) -> Vec<(usize, usize, char, &str)> {
         .collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let result = parse_input(input).into_iter().fold(0, |acc, (a, b, t, s)| {
-            acc + (a..=b).contains(&s.chars().filter(|&c| c == t).count()) as usize
-        });
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let result = parse_input(input).into_iter().fold(0, |acc, (a, b, t, s)| {
-            acc + ((s.chars().nth(a - 1).unwrap_or('-') == t) != (s.chars().nth(b - 1).unwrap_or('-') == t)) as usize
-        });
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> usize {
+    parse_input(input).into_iter().fold(0, |acc, (a, b, t, s)| {
+        acc + (a..=b).contains(&s.chars().filter(|&c| c == t).count()) as usize
+    })
+}
 
-#[cfg(test)]
-crate::solution_test!(538, 489);
+fn part2(input: &str) -> usize {
+    parse_input(input).into_iter().fold(0, |acc, (a, b, t, s)| {
+        acc + ((s.chars().nth(a - 1).unwrap_or('-') == t) != (s.chars().nth(b - 1).unwrap_or('-') == t)) as usize
+    })
+}
+
+crate::solution!(part1 => 538, part2 => 489);

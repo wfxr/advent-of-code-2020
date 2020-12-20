@@ -1,4 +1,3 @@
-use crate::Solution;
 use std::collections::HashMap;
 
 fn valid1(passport: &HashMap<&str, &str>) -> bool {
@@ -55,18 +54,11 @@ fn parse_input(input: &str) -> Vec<HashMap<&str, &str>> {
 
 const EYE_COLORS: &[&str] = &["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let input = parse_input(input);
-        let result = solve(&input, valid1);
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let input = parse_input(input);
-        let result = solve(&input, valid2);
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> usize {
+    solve(&parse_input(input), valid1)
+}
+fn part2(input: &str) -> usize {
+    solve(&parse_input(input), valid2)
+}
 
-#[cfg(test)]
-crate::solution_test!(208, 167);
+crate::solution!(part1 => 208, part2 => 167);

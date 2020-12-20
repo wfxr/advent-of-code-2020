@@ -1,5 +1,3 @@
-use crate::Solution;
-
 fn count<F>(answers: &[&str], f: F) -> usize
 where
     F: Fn(usize) -> bool,
@@ -18,16 +16,12 @@ fn parse_input(input: &str) -> Vec<Vec<&str>> {
         .collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let result: usize = parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum();
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let result: usize = parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum();
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> usize {
+    parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum()
+}
 
-#[cfg(test)]
-crate::solution_test!(6416, 3050);
+fn part2(input: &str) -> usize {
+    parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum()
+}
+
+crate::solution!(part1 => 6416, part2 => 3050);

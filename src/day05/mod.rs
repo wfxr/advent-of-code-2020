@@ -1,5 +1,3 @@
-use crate::Solution;
-
 #[rustfmt::skip]
 fn seat_id(seat: &str) -> usize {
     seat.chars().rev()
@@ -7,18 +5,14 @@ fn seat_id(seat: &str) -> usize {
         .0
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let result = input.lines().map(|seat| seat_id(seat)).max().unwrap();
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let mut seats: Vec<_> = input.lines().map(|seat| seat_id(seat)).collect();
-        seats.sort_unstable();
-        let result = seats.iter().zip(seats[0]..).find(|&(a, b)| *a != b).unwrap().1;
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> usize {
+    input.lines().map(|seat| seat_id(seat)).max().unwrap()
+}
 
-#[cfg(test)]
-crate::solution_test!(994, 741);
+fn part2(input: &str) -> usize {
+    let mut seats: Vec<_> = input.lines().map(|seat| seat_id(seat)).collect();
+    seats.sort_unstable();
+    seats.iter().zip(seats[0]..).find(|&(a, b)| *a != b).unwrap().1
+}
+
+crate::solution!(part1 => 994, part2 => 741);

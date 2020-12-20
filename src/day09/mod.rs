@@ -1,4 +1,3 @@
-use crate::Solution;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
@@ -47,18 +46,12 @@ fn parse_input(input: &str) -> Vec<i64> {
     input.lines().map(|line| line.parse().unwrap()).collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let input = parse_input(input);
-        let result = p1_solve(&input);
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let input = parse_input(input);
-        let result = p2_solve(&input);
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> i64 {
+    p1_solve(&parse_input(input))
+}
 
-#[cfg(test)]
-crate::solution_test!(1309761972, 177989832);
+fn part2(input: &str) -> i64 {
+    p2_solve(&parse_input(input))
+}
+
+crate::solution!(part1 => 1309761972, part2 => 177989832);

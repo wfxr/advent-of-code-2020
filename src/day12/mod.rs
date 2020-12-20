@@ -1,5 +1,3 @@
-use crate::Solution;
-
 struct Point {
     x: i64,
     y: i64,
@@ -45,44 +43,42 @@ fn parse_input(input: &str) -> Vec<(char, i64)> {
         .collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let input = parse_input(input);
-        let mut ship = Point::new(0, 0);
-        let mut direction = Point::new(1, 0);
-        for &(ins, v) in &input {
-            match ins {
-                'N' => ship.y += v,
-                'S' => ship.y -= v,
-                'E' => ship.x += v,
-                'W' => ship.x -= v,
-                'L' => direction = direction.turn(v),
-                'R' => direction = direction.turn(360 - v),
-                'F' => ship = ship.add(&direction.mul(v)),
-                _ => unreachable!("instruction: {}", ins),
-            }
+fn part1(input: &str) -> usize {
+    let input = parse_input(input);
+    let mut ship = Point::new(0, 0);
+    let mut direction = Point::new(1, 0);
+    for &(ins, v) in &input {
+        match ins {
+            'N' => ship.y += v,
+            'S' => ship.y -= v,
+            'E' => ship.x += v,
+            'W' => ship.x -= v,
+            'L' => direction = direction.turn(v),
+            'R' => direction = direction.turn(360 - v),
+            'F' => ship = ship.add(&direction.mul(v)),
+            _ => unreachable!("instruction: {}", ins),
         }
-        Ok(ship.manhattan().to_string())
-    },
-    part2: |input| {
-        let input = parse_input(input);
-        let mut waypoint = Point::new(10, 1);
-        let mut ship = Point::new(0, 0);
-        for &(ins, v) in &input {
-            match ins {
-                'N' => waypoint.y += v,
-                'S' => waypoint.y -= v,
-                'E' => waypoint.x += v,
-                'W' => waypoint.x -= v,
-                'L' => waypoint = waypoint.turn(v),
-                'R' => waypoint = waypoint.turn(360 - v),
-                'F' => ship = ship.add(&waypoint.mul(v)),
-                _ => unreachable!("instruction: {}", ins),
-            }
-        }
-        Ok(ship.manhattan().to_string())
-    },
-};
+    }
+    ship.manhattan()
+}
 
-#[cfg(test)]
-crate::solution_test!(1956, 126797);
+fn part2(input: &str) -> usize {
+    let input = parse_input(input);
+    let mut waypoint = Point::new(10, 1);
+    let mut ship = Point::new(0, 0);
+    for &(ins, v) in &input {
+        match ins {
+            'N' => waypoint.y += v,
+            'S' => waypoint.y -= v,
+            'E' => waypoint.x += v,
+            'W' => waypoint.x -= v,
+            'L' => waypoint = waypoint.turn(v),
+            'R' => waypoint = waypoint.turn(360 - v),
+            'F' => ship = ship.add(&waypoint.mul(v)),
+            _ => unreachable!("instruction: {}", ins),
+        }
+    }
+    ship.manhattan()
+}
+
+crate::solution!(part1 => 1956, part2 => 126797);

@@ -47,16 +47,7 @@ const SOLUTIONS: &[Solution] = &[
     day16::SOLUTION,
     day17::SOLUTION,
     day18::SOLUTION,
-];
-
-fn measure<T, F>(f: F) -> (Duration, T)
-where
-    F: FnOnce() -> T,
-{
-    let start = Instant::now();
-    let r = f();
-    (Instant::now() - start, r)
-}
+]; // +SOLUTIONS
 
 fn main() -> Result<(), Box<dyn Error>> {
     let day: usize = std::env::args().nth(1).ok_or("missing day number")?.parse()?;
@@ -70,4 +61,28 @@ fn main() -> Result<(), Box<dyn Error>> {
     let (t, result) = measure(|| part2(&input));
     println!("part 2: {}, time used {:?}", result?, t);
     Ok(())
+}
+
+fn measure<T, F>(f: F) -> (Duration, T)
+where
+    F: FnOnce() -> T,
+{
+    let start = Instant::now();
+    let r = f();
+    (Instant::now() - start, r)
+}
+
+#[macro_export]
+macro_rules! solution {
+    ($part1:ident => $expected1:expr, $part2:ident => $expected2:expr) => {
+        pub(super) const SOLUTION: crate::Solution = crate::Solution {
+            part1: |input| Ok($part1(input).to_string()),
+            part2: |input| Ok($part2(input).to_string()),
+        };
+        #[cfg(test)]
+        mod solution {
+            crate::solution_test!(part1 => $expected1);
+            crate::solution_test!(part2 => $expected2);
+        }
+    };
 }

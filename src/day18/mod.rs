@@ -1,5 +1,3 @@
-use crate::Solution;
-
 fn to_postfix(expr: &str, prec: fn(char) -> u8) -> Vec<char> {
     let mut st = vec![];
     let mut rs = vec![];
@@ -56,24 +54,20 @@ fn solve(input: &str, prec: fn(char) -> u8) -> i64 {
         .sum()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let result = solve(input, |op| match op {
-            '+' => 0,
-            '*' => 0,
-            _ => panic!(format!("unexpected operator: '{}'", op)),
-        });
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let result = solve(input, |op| match op {
-            '+' => 0,
-            '*' => 1,
-            _ => panic!(format!("unexpected operator: '{}'", op)),
-        });
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> i64 {
+    solve(input, |op| match op {
+        '+' => 0,
+        '*' => 0,
+        _ => panic!(format!("unexpected operator: '{}'", op)),
+    })
+}
 
-#[cfg(test)]
-crate::solution_test!(16332191652452, 351175492232654);
+fn part2(input: &str) -> i64 {
+    solve(input, |op| match op {
+        '+' => 0,
+        '*' => 1,
+        _ => panic!(format!("unexpected operator: '{}'", op)),
+    })
+}
+
+crate::solution!(part1 => 16332191652452, part2 => 351175492232654);

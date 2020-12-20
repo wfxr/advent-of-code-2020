@@ -1,5 +1,3 @@
-use crate::Solution;
-
 fn run_once(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
     let mut program: Vec<_> = program
         .iter()
@@ -47,26 +45,21 @@ fn parse_input(input: &str) -> Vec<(String, i64)> {
         .collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let input = parse_input(input);
-        let (result, ..) = run_once(&input, None);
-        Ok(result.to_string())
-    },
-    part2: |input| {
-        let input = parse_input(input);
-        let result = input
-            .iter()
-            .enumerate()
-            .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
-            .find_map(|(i, ..)| match run_once(&input, Some(i)) {
-                (result, true) => Some(result),
-                _ => None,
-            })
-            .unwrap();
-        Ok(result.to_string())
-    },
-};
+fn part1(input: &str) -> i64 {
+    run_once(&parse_input(input), None).0
+}
 
-#[cfg(test)]
-crate::solution_test!(1939, 2212);
+fn part2(input: &str) -> i64 {
+    let input = parse_input(input);
+    input
+        .iter()
+        .enumerate()
+        .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
+        .find_map(|(i, ..)| match run_once(&input, Some(i)) {
+            (result, true) => Some(result),
+            _ => None,
+        })
+        .unwrap()
+}
+
+crate::solution!(part1 => 1939, part2 => 2212);

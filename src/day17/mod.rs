@@ -1,4 +1,3 @@
-use crate::Solution;
 use std::collections::{HashMap, HashSet};
 
 type Point = (i8, i8, i8, i8);
@@ -55,10 +54,12 @@ fn solve(input: &str, neighbors: &[Point]) -> usize {
     matrix.len()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| Ok(solve(input, &NEIGHBORS[..26]).to_string()),
-    part2: |input| Ok(solve(input, NEIGHBORS).to_string()),
-};
+fn part1(input: &str) -> usize {
+    solve(input, &NEIGHBORS[..26])
+}
 
-#[cfg(test)]
-crate::solution_test!(202, 2028);
+fn part2(input: &str) -> usize {
+    solve(input, NEIGHBORS)
+}
+
+crate::solution!(part1 => 202, part2 => 2028);

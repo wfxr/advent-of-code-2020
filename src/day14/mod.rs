@@ -1,4 +1,3 @@
-use crate::Solution;
 use std::collections::HashMap;
 
 fn parse_mask(mask: &str, target: char) -> u64 {
@@ -38,28 +37,30 @@ fn parse_input(input: &str) -> Vec<(&str, Vec<(u64, u64)>)> {
         .collect()
 }
 
-pub(super) const SOLUTION: Solution = Solution {
-    part1: |input| {
-        let input = parse_input(input);
-        let result = input.iter().fold(HashMap::new(), |mut acc, (mask, lines)| {
+fn part1(input: &str) -> u64 {
+    parse_input(input)
+        .iter()
+        .fold(HashMap::new(), |mut acc, (mask, lines)| {
             let (mask0, mask1) = (!parse_mask(mask, '0'), parse_mask(mask, '1'));
             acc.extend(lines.iter().map(|(mem, val)| (mem, val & mask0 | mask1)));
             acc
-        });
-        Ok(result.values().sum::<u64>().to_string())
-    },
-    part2: |input| {
-        let input = parse_input(input);
-        let result = input.iter().fold(HashMap::new(), |mut acc, (mask, lines)| {
+        })
+        .values()
+        .sum()
+}
+
+fn part2(input: &str) -> u64 {
+    parse_input(input)
+        .iter()
+        .fold(HashMap::new(), |mut acc, (mask, lines)| {
             let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
             lines
                 .iter()
                 .for_each(|&(mem, val)| update_memory(maskx, mem | mask1, val, &mut acc));
             acc
-        });
-        Ok(result.values().sum::<u64>().to_string())
-    },
-};
+        })
+        .values()
+        .sum()
+}
 
-#[cfg(test)]
-crate::solution_test!(5902420735773, 3801988250775);
+crate::solution!(part1 => 5902420735773, part2 => 3801988250775);
