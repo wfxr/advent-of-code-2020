@@ -1,45 +1,30 @@
-use Rule::{And2, And3, Ch, Or, Ref};
+use std::iter;
+use Rule::{And2, And3, Or2, Ref, Val};
 
 enum Rule {
-    Ch(char),
+    Val(char),
     Ref(usize),
     And2(Box<Rule>, Box<Rule>),
     And3(Box<Rule>, Box<Rule>, Box<Rule>),
-    Or(Box<Rule>, Box<Rule>),
+    Or2(Box<Rule>, Box<Rule>),
 }
 
-fn matches<'a>(rule: &Rule, rules: &[Rule], rest: &'a [char]) -> Vec<&'a [char]> {
+fn matches<'a>(rule: &'a Rule, rules: &'a [Rule], rest: &'a [char]) -> Box<dyn Iterator<Item = &'a [char]> + 'a> {
     if rest.is_empty() {
-        return vec![];
+        return Box::new(iter::empty());
     }
     match rule {
         Rule::Ref(i) => matches(&rules[*i], rules, rest),
-        Rule::Ch(c) => match rest[0] == *c {
-            true => vec![&rest[1..]],
-            false => vec![],
+        Rule::Val(c) => match rest[0] == *c {
+            true => Box::new(iter::once(&rest[1..])),
+            false => Box::new(iter::empty()),
         },
-        Rule::Or(a, b) => matches(a, rules, rest)
-            .into_iter()
-            .chain(matches(b, rules, rest).into_iter())
-            .collect(),
-        Rule::And2(a, b) => matches(a, rules, rest)
-            .into_iter()
-            .flat_map(|rest| matches(b, rules, rest).into_iter())
-            .collect(),
-        Rule::And3(a, b, c) => matches(a, rules, rest)
-            .into_iter()
-            .flat_map(|rest| {
-                matches(b, rules, rest)
-                    .into_iter()
-                    .flat_map(|rest| matches(c, rules, rest).into_iter())
-            })
-            .collect(),
-    }
-}
-fn parse_base_rule(s: &str) -> Rule {
-    match s.parse() {
-        Ok(i) => Ref(i),
-        _ => Ch(s.chars().nth(1).unwrap_or_else(|| panic!("s: '{}'", s))),
+        Rule::Or2(a, b) => Box::new(matches(a, rules, rest).chain(matches(b, rules, rest))),
+        Rule::And2(a, b) => Box::new(matches(a, rules, rest).flat_map(move |rest| matches(b, rules, rest))),
+        Rule::And3(a, b, c) => Box::new(
+            matches(a, rules, rest)
+                .flat_map(move |rest| matches(b, rules, rest).flat_map(move |rest| matches(c, rules, rest))),
+        ),
     }
 }
 
@@ -47,7 +32,11 @@ fn parse_rule(s: &str) -> (usize, Rule) {
     let mut it = s.split(':');
     let id: usize = it.next().unwrap().parse().unwrap();
     let mut it = it.next().unwrap().split('|').map(|s| {
-        let mut it = s.split_whitespace().map(parse_base_rule);
+        let mut it = s.split_whitespace().map(|s| {
+            s.parse()
+                .map(Ref)
+                .unwrap_or_else(|_| Val(s.chars().nth(1).unwrap_or_else(|| panic!("s: '{}'", s))))
+        });
         match (it.next(), it.next(), it.next()) {
             (Some(a), Some(b), Some(c)) => And3(Box::new(a), Box::new(b), Box::new(c)),
             (Some(a), Some(b), None) => And2(Box::new(a), Box::new(b)),
@@ -56,41 +45,36 @@ fn parse_rule(s: &str) -> (usize, Rule) {
         }
     });
     let rule = match (it.next(), it.next()) {
-        (Some(a), Some(b)) => Or(Box::new(a), Box::new(b)),
+        (Some(a), Some(b)) => Or2(Box::new(a), Box::new(b)),
         (Some(a), None) => a,
         _ => unreachable!(),
     };
     (id, rule)
 }
 
-fn parse_input(input: &str) -> (Vec<Rule>, Vec<&str>) {
+fn solve(input: &str, replacer: fn(&str) -> &str) -> usize {
     let mut it = input.split("\n\n");
-    let mut rules: Vec<_> = it.next().unwrap().lines().map(parse_rule).collect();
+    let mut rules: Vec<_> = it.next().unwrap().lines().map(replacer).map(parse_rule).collect();
     rules.sort_unstable_by_key(|item| item.0);
-    let rules = rules.into_iter().map(|item| item.1).collect();
-    let msgs = it.next().unwrap().lines().collect();
-    (rules, msgs)
+    let rules: Vec<_> = rules.into_iter().map(|item| item.1).collect();
+    it.next()
+        .unwrap()
+        .lines()
+        .map(|msg| msg.chars().collect::<Vec<_>>())
+        .filter(|msg| matches(&rules[0], &rules, &msg).any(|s| s.is_empty()))
+        .count()
 }
 
 fn part1(input: &str) -> usize {
-    let (rules, msgs) = parse_input(input);
-    msgs.iter()
-        .map(|msg| msg.chars().collect::<Vec<_>>())
-        .filter(|msg| matches(&rules[0], &rules, &msg).into_iter().any(|s| s.is_empty()))
-        .count()
+    solve(input, |s| s)
 }
 
 fn part2(input: &str) -> usize {
-    let (mut rules, msgs) = parse_input(input);
-    rules[8] = Or(Box::new(Ref(42)), Box::new(And2(Box::new(Ref(42)), Box::new(Ref(8)))));
-    rules[11] = Or(
-        Box::new(And2(Box::new(Ref(42)), Box::new(Ref(31)))),
-        Box::new(And3(Box::new(Ref(42)), Box::new(Ref(11)), Box::new(Ref(31)))),
-    );
-    msgs.iter()
-        .map(|msg| msg.chars().collect::<Vec<_>>())
-        .filter(|msg| matches(&rules[0], &rules, &msg).into_iter().any(|s| s.is_empty()))
-        .count()
+    solve(input, |s| match &s[..3] {
+        "8: " => "8: 42 | 42 8",
+        "11:" => "11: 42 31 | 42 11 31",
+        _ => s,
+    })
 }
 
-crate::solution!(part1 => 0, part2 => 0);
+crate::solution!(part1 => 220, part2 => 439);
