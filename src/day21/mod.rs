@@ -1,6 +1,7 @@
+use crate::{solution_result, Result};
 use std::collections::{HashMap, HashSet};
 
-fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> HashMap<&'a str, &'a str> {
+fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> Result<HashMap<&'a str, &'a str>> {
     let mut m = HashMap::new(); // allergen -> possible ingredients
     input.iter().for_each(|(ingrs, alles)| {
         alles.iter().for_each(|alle| {
@@ -18,25 +19,27 @@ fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> HashMap<&'a
             alles.remove(alle);
         });
     }
-    assert!(m.is_empty(), "does not work!");
-    mapping
+    match m.is_empty() {
+        true => Ok(mapping),
+        false => Err("does not work!".into()),
+    }
 }
 
-fn part1(input: &str) -> usize {
+fn part1(input: &str) -> Result<usize> {
     let input = parse_input(input);
-    let mapping = solve_mapping(&input);
-    input
+    let mapping = solve_mapping(&input)?;
+    Ok(input
         .iter()
         .flat_map(|(ingredients, _)| ingredients)
         .filter(|&ingredient| !mapping.contains_key(ingredient))
-        .count()
+        .count())
 }
 
-fn part2(input: &str) -> String {
+fn part2(input: &str) -> Result<String> {
     let input = parse_input(input);
-    let mut ingredients: Vec<_> = solve_mapping(&input).into_iter().collect();
+    let mut ingredients: Vec<_> = solve_mapping(&input)?.into_iter().collect();
     ingredients.sort_unstable_by_key(|&(_, v)| v);
-    ingredients.iter().map(|&(k, _)| k).collect::<Vec<&str>>().join(",")
+    Ok(ingredients.iter().map(|&(k, _)| k).collect::<Vec<&str>>().join(","))
 }
 
 fn parse_input(input: &str) -> Vec<(HashSet<&str>, HashSet<&str>)> {
@@ -50,4 +53,5 @@ fn parse_input(input: &str) -> Vec<(HashSet<&str>, HashSet<&str>)> {
         })
         .collect()
 }
-crate::solution!(part1 => 2098, part2 => "ppdplc,gkcplx,ktlh,msfmt,dqsbql,mvqkdj,ggsz,hbhsx");
+
+solution_result!(part1 => 2098, part2 => "ppdplc,gkcplx,ktlh,msfmt,dqsbql,mvqkdj,ggsz,hbhsx");
