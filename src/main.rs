@@ -51,15 +51,16 @@ fn get_solution(index: &str) -> Option<Solution> {
 #[cfg(test)]
 mod testmacros;
 
-use std::error::Error;
 use std::time::{Duration, Instant};
 
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+
 struct Solution {
-    part1: fn(&str) -> Result<String, Box<dyn Error>>,
-    part2: fn(&str) -> Result<String, Box<dyn Error>>,
+    part1: fn(&str) -> Result<String>,
+    part2: fn(&str) -> Result<String>,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<()> {
     let index = std::env::args().nth(1).ok_or("missing solution index")?;
 
     let Solution { part1, part2 } = get_solution(&index).ok_or("solution not found")?;
@@ -88,6 +89,21 @@ macro_rules! solution {
         pub(super) const SOLUTION: crate::Solution = crate::Solution {
             part1: |input| Ok($part1(input).to_string()),
             part2: |input| Ok($part2(input).to_string()),
+        };
+        #[cfg(test)]
+        mod solution {
+            crate::solution_test!(part1 => $expected1);
+            crate::solution_test!(part2 => $expected2);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! solution_result {
+    ($part1:ident => $expected1:expr, $part2:ident => $expected2:expr) => {
+        pub(super) const SOLUTION: crate::Solution = crate::Solution {
+            part1: |input| $part1(input).map(|x| x.to_string()),
+            part2: |input| $part2(input).map(|x| x.to_string()),
         };
         #[cfg(test)]
         mod solution {
