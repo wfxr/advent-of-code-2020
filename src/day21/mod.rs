@@ -1,24 +1,24 @@
 use std::collections::{HashMap, HashSet};
 
 fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> HashMap<&'a str, &'a str> {
-    let mut m: HashMap<&str, HashSet<&str>> = HashMap::new(); // allergen -> possible ingredients
-    input.iter().for_each(|(ingredients, allergens)| {
-        allergens.iter().for_each(|allergen| {
-            let entry = m.entry(allergen).or_insert_with(|| ingredients.clone());
-            *entry = entry.intersection(ingredients).cloned().collect();
+    let mut m = HashMap::new(); // allergen -> possible ingredients
+    input.iter().for_each(|(ingrs, alles)| {
+        alles.iter().for_each(|alle| {
+            let entry = m.entry(alle).or_insert_with(|| ingrs.clone());
+            *entry = entry.intersection(ingrs).cloned().collect();
         });
     });
 
     let mut mapping = HashMap::new(); // ingredient -> allergen
-    while let Some((&k, v)) = m.iter().filter(|(_, v)| v.len() == 1).next() {
-        let allergen = *v.iter().next().unwrap();
-        mapping.insert(allergen, k);
-        m.remove(k);
-        m.iter_mut().for_each(|(_, v)| {
-            v.remove(allergen);
+    while let Some((&ingr, alles)) = m.iter().find(|(_, alles)| alles.len() == 1) {
+        let alle = *alles.iter().next().unwrap();
+        mapping.insert(alle, *ingr);
+        m.remove(ingr);
+        m.iter_mut().for_each(|(_, alles)| {
+            alles.remove(alle);
         });
     }
-    assert!(m.is_empty(), "no easy solution!");
+    assert!(m.is_empty(), "does not work!");
     mapping
 }
 
@@ -34,10 +34,9 @@ fn part1(input: &str) -> usize {
 
 fn part2(input: &str) -> String {
     let input = parse_input(input);
-    let mapping = solve_mapping(&input);
-    let mut ingredients: Vec<_> = mapping.iter().collect();
-    ingredients.sort_unstable_by_key(|(_, &v)| v);
-    ingredients.iter().map(|(&k, _)| k).collect::<Vec<&str>>().join(",")
+    let mut ingredients: Vec<_> = solve_mapping(&input).into_iter().collect();
+    ingredients.sort_unstable_by_key(|&(_, v)| v);
+    ingredients.iter().map(|&(k, _)| k).collect::<Vec<&str>>().join(",")
 }
 
 fn parse_input(input: &str) -> Vec<(HashSet<&str>, HashSet<&str>)> {
@@ -45,9 +44,9 @@ fn parse_input(input: &str) -> Vec<(HashSet<&str>, HashSet<&str>)> {
         .lines()
         .map(|line| {
             let mut it = line.split(|c: char| !c.is_ascii_alphabetic()).filter(|s| !s.is_empty());
-            let ingredients = it.by_ref().take_while(|&s| s != "contains").collect();
-            let allergens = it.collect();
-            (ingredients, allergens)
+            let ingrs = it.by_ref().take_while(|&s| s != "contains").collect();
+            let alles = it.collect();
+            (ingrs, alles)
         })
         .collect()
 }
