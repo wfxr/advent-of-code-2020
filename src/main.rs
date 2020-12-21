@@ -60,18 +60,23 @@ struct Solution {
     part2: fn(&str) -> Result<String>,
 }
 
-fn main() -> Result<()> {
-    let index = std::env::args().nth(1).ok_or("missing solution index")?;
+fn main() {
+    if let Err(e) = || -> Result<_> {
+        let index = std::env::args().nth(1).ok_or("missing solution index")?;
 
-    let Solution { part1, part2 } = get_solution(&index).ok_or("solution not found")?;
-    let input = std::fs::read_to_string(format!("src/{}/input", index))?;
+        let Solution { part1, part2 } = get_solution(&index).ok_or("solution not found")?;
+        let input = std::fs::read_to_string(format!("src/{}/input", index))?;
 
-    let (t, result) = measure(|| part1(&input));
-    println!("part 1: {}, time used: {:?}", result?, t);
+        let (t, result) = measure(|| part1(&input));
+        println!("part 1: {}, time used: {:?}", result?, t);
 
-    let (t, result) = measure(|| part2(&input));
-    println!("part 2: {}, time used {:?}", result?, t);
-    Ok(())
+        let (t, result) = measure(|| part2(&input));
+        println!("part 2: {}, time used {:?}", result?, t);
+        Ok(())
+    }() {
+        eprintln!("Error: {}", e);
+        std::process::exit(1);
+    }
 }
 
 fn measure<T, F>(f: F) -> (Duration, T)

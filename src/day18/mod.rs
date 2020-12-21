@@ -1,6 +1,7 @@
-fn to_postfix(expr: &str, prec: fn(char) -> u8) -> Vec<char> {
-    let mut st = vec![];
-    let mut rs = vec![];
+use crate::{solution_result, Result};
+
+fn to_postfix(expr: &str, prec: fn(char) -> Result<u8>) -> Result<Vec<char>> {
+    let (mut st, mut rs) = (vec![], vec![]);
     for c in expr.chars() {
         match c {
             ' ' => continue,
@@ -16,7 +17,7 @@ fn to_postfix(expr: &str, prec: fn(char) -> u8) -> Vec<char> {
                 loop {
                     match st.last() {
                         Some('(') => break,
-                        Some(&top) if prec(top) <= prec(op) => rs.push(st.pop().unwrap()),
+                        Some(&top) if prec(top)? <= prec(op)? => rs.push(st.pop().unwrap()),
                         _ => break,
                     }
                 }
@@ -25,49 +26,52 @@ fn to_postfix(expr: &str, prec: fn(char) -> u8) -> Vec<char> {
         }
     }
     rs.extend(st.into_iter().rev());
-    rs
+    Ok(rs)
 }
 
-fn evaluate(expr: &[char]) -> i64 {
+fn evaluate(expr: &[char]) -> Result<i64> {
     let mut st = vec![];
     for c in expr {
         match c {
             '0'..='9' => st.push(*c as i64 - '0' as i64),
             op => {
-                let (rhs, lhs) = (st.pop().unwrap(), st.pop().unwrap());
+                let (rhs, lhs) = (st.pop().ok_or("missing operand")?, st.pop().ok_or("missing operand")?);
                 st.push(match op {
                     '+' => lhs + rhs,
                     '*' => lhs * rhs,
-                    _ => panic!(format!("unexpected operator: {:?}", op)),
+                    _ => return Err(format!("unexpected operator: {}", op).into()),
                 });
             }
         }
     }
-    st[0]
+    match st.len() {
+        0..=1 => st.pop().ok_or("no result".into()),
+        _ => Err(format!("extra operands: {:?}", &st[0..st.len() - 1]).into()),
+    }
 }
 
-fn solve(input: &str, prec: fn(char) -> u8) -> i64 {
+fn solve(input: &str, prec: fn(char) -> Result<u8>) -> Result<i64> {
     input
         .lines()
         .map(|expr| to_postfix(expr, prec))
-        .map(|expr| evaluate(&expr))
+        .map(|expr| expr.map(|expr| evaluate(&expr))?)
         .sum()
 }
 
-fn part1(input: &str) -> i64 {
+fn part1(input: &str) -> Result<i64> {
     solve(input, |op| match op {
-        '+' => 0,
-        '*' => 0,
-        _ => panic!(format!("unexpected operator: '{}'", op)),
+        '+' => Ok(0),
+        '*' => Ok(0),
+        _ => Err(format!("unexpected operator: '{}'", op).into()),
     })
 }
 
-fn part2(input: &str) -> i64 {
+fn part2(input: &str) -> Result<i64> {
     solve(input, |op| match op {
-        '+' => 0,
-        '*' => 1,
-        _ => panic!(format!("unexpected operator: '{}'", op)),
+        '+' => Ok(0),
+        '*' => Ok(1),
+        _ => Err(format!("unexpected operator: '{}'", op).into()),
     })
 }
 
-crate::solution!(part1 => 16332191652452, part2 => 351175492232654);
+solution_result!(part1 => 16332191652452, part2 => 351175492232654);
