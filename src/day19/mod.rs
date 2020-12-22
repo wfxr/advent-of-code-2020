@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::iter;
 use Rule::{And2, And3, Or2, Ref, Val};
 
@@ -35,7 +35,7 @@ fn parse_rule(s: &str) -> Result<(usize, Rule)> {
     let mut it = it.next().ok_or("missing rule")?.split('|').map(|s| {
         let mut it = s.split_whitespace().map(|s| match s.parse() {
             Ok(x) => Ok(Ref(x)),
-            Err(_) => s.chars().nth(1).ok_or("invalid char rule").map(Val),
+            _ => s.chars().nth(1).ok_or("invalid char rule").map(Val),
         });
         match [it.next(), it.next(), it.next()] {
             [Some(a), Some(b), Some(c)] => Ok(And3(Box::new(a?), Box::new(b?), Box::new(c?))),
@@ -47,7 +47,7 @@ fn parse_rule(s: &str) -> Result<(usize, Rule)> {
     let rule = match [it.next(), it.next()] {
         [Some(a), Some(b)] => Or2(Box::new(a?), Box::new(b?)),
         [Some(a), None] => a?,
-        [None, ..] => return Err("empty rule".into()),
+        [None, ..] => return err!("empty rule"),
     };
     Ok((id, rule))
 }

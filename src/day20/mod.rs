@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::collections::HashMap;
 
 struct Tile {
@@ -20,7 +20,7 @@ fn parse_tile<'a>(lines: impl Iterator<Item = &'a str>) -> Result<Tile> {
     let cells: Vec<_> = lines.inspect(|_| size += 1).flat_map(|l| l.chars()).collect();
     match size * size {
         n if n == cells.len() => Ok(Tile { size, cells }),
-        _ => Err("tile size inconsistent".into()),
+        _ => err!("tile size inconsistent"),
     }
 }
 

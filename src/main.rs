@@ -104,3 +104,8 @@ macro_rules! solution {
         }
     };
 }
+
+#[macro_export]
+macro_rules! err {
+    ($($tt:tt)*) => { Err(format!($($tt)*).into()) };
+}

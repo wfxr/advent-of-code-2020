@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 
 struct Point {
     x: i64,
@@ -15,7 +15,7 @@ impl Point {
             90 => Ok(Point::new(-self.y, self.x)),
             180 => Ok(Point::new(-self.x, -self.y)),
             270 => Ok(Point::new(self.y, -self.x)),
-            _ => Err(format!("invalid degrees: {}", degrees).into()),
+            _ => err!("invalid degrees: {}", degrees),
         }
     }
 
@@ -63,7 +63,7 @@ fn part1(input: &str) -> Result<usize> {
             'L' => direction = direction.turn(v)?,
             'R' => direction = direction.turn(360 - v)?,
             'F' => ship = ship.add(&direction.mul(v)),
-            _ => return Err(format!("instruction: {}", ins).into()),
+            _ => return err!("instruction: {}", ins),
         }
     }
     Ok(ship.manhattan())
@@ -82,7 +82,7 @@ fn part2(input: &str) -> Result<usize> {
             'L' => waypoint = waypoint.turn(v)?,
             'R' => waypoint = waypoint.turn(360 - v)?,
             'F' => ship = ship.add(&waypoint.mul(v)),
-            _ => return Err(format!("instruction: {}", ins).into()),
+            _ => return err!("instruction: {}", ins),
         }
     }
     Ok(ship.manhattan())

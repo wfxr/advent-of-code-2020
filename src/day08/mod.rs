@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 
 fn run_once(program: &[(&str, i64)], flip: Option<usize>) -> Result<(i64, bool)> {
     let mut program: Vec<_> = program
@@ -26,7 +26,7 @@ fn run_once(program: &[(&str, i64)], flip: Option<usize>) -> Result<(i64, bool)>
                 }
                 "jmp" => p = (p as i64 + arg) as usize,
                 "nop" => p += 1,
-                s => return Err(format!("unknown ins: {}", s).into()),
+                s => return err!("unknown ins: {}", s),
             },
             None => return Ok((acc, false)), // cannot halt
         };

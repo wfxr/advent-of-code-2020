@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::collections::{HashMap, HashSet};
 
 fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> Result<HashMap<&'a str, &'a str>> {
@@ -21,7 +21,7 @@ fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> Result<Hash
     }
     match m.is_empty() {
         true => Ok(mapping),
-        false => Err("does not work!".into()),
+        false => err!("does not work!"),
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::collections::HashSet;
 
 fn parse_input(input: &str) -> Result<Vec<i32>> {
@@ -30,7 +30,7 @@ fn part2(input: &str) -> Result<i32> {
             }
         }
     }
-    Err("not found".into())
+    err!("not found")
 }
 
 solution!(part1 => 259716, part2 => 120637440);

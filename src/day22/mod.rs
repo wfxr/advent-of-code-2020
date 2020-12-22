@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
 
@@ -20,7 +20,7 @@ fn parse_input(input: &str) -> Result<(Deck, Deck)> {
 
     match (it.next(), it.next()) {
         (Some(player1), Some(player2)) => Ok((player1?, player2?)),
-        _ => Err("no enough players".into()),
+        _ => err!("no enough players"),
     }
 }
 
@@ -49,7 +49,7 @@ fn game1(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
                 p2.push_back(b);
                 p2.push_back(a);
             }
-            Ordering::Equal => return Err(format!("same card: {}", a).into()),
+            Ordering::Equal => return err!("same card: {}", a),
         }
     }
     Ok(if p1.is_empty() { Player::Two } else { Player::One })
@@ -75,7 +75,7 @@ fn game2(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
                     match a.cmp(&b) {
                         Ordering::Greater => Player::One,
                         Ordering::Less => Player::Two,
-                        Ordering::Equal => return Err(format!("same card: {}", a).into()),
+                        Ordering::Equal => return err!("same card: {}", a),
                     }
                 }
             }

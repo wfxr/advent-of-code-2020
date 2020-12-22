@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::ops::RangeInclusive;
 
 type Rule = (String, RangeInclusive<usize>, RangeInclusive<usize>);
@@ -18,7 +18,7 @@ fn parse_input(input: &str) -> Result<(Vec<Rule>, Vec<usize>, Vec<Vec<usize>>)> 
                 .collect();
             match ranges[..] {
                 [n1, n2, n3, n4] => Ok((field, n1..=n2, n3..=n4)),
-                _ => Err(format!("error parsing rule: {}", line).into()),
+                _ => err!("error parsing rule: {}", line),
             }
         })
         .collect::<Result<_>>()?;

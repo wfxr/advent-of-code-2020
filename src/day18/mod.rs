@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 
 fn to_postfix(expr: &str, prec: fn(char) -> Result<u8>) -> Result<Vec<char>> {
     let (mut st, mut rs) = (vec![], vec![]);
@@ -39,14 +39,14 @@ fn evaluate(expr: &[char]) -> Result<i64> {
                 st.push(match op {
                     '+' => lhs + rhs,
                     '*' => lhs * rhs,
-                    _ => return Err(format!("unexpected operator: {}", op).into()),
+                    _ => return err!("unexpected operator: {}", op),
                 });
             }
         }
     }
     match st.len() {
         0..=1 => st.pop().ok_or_else(|| "no result".into()),
-        _ => Err(format!("extra operands: {:?}", &st[0..st.len() - 1]).into()),
+        _ => err!("extra operands: {:?}", &st[0..st.len() - 1]),
     }
 }
 
@@ -62,7 +62,7 @@ fn part1(input: &str) -> Result<i64> {
     solve(input, |op| match op {
         '+' => Ok(0),
         '*' => Ok(0),
-        _ => Err(format!("unexpected operator: '{}'", op).into()),
+        _ => err!("unexpected operator: '{}'", op),
     })
 }
 
@@ -70,7 +70,7 @@ fn part2(input: &str) -> Result<i64> {
     solve(input, |op| match op {
         '+' => Ok(0),
         '*' => Ok(1),
-        _ => Err(format!("unexpected operator: '{}'", op).into()),
+        _ => err!("unexpected operator: '{}'", op),
     })
 }
 

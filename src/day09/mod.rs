@@ -1,4 +1,4 @@
-use crate::{solution, Result};
+use crate::{err, solution, Result};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
@@ -52,7 +52,7 @@ fn part2(input: &str) -> Result<i64> {
             return Ok(max + min);
         }
     }
-    Err("not found".into())
+    err!("not found")
 }
 
 solution!(part1 => 1309761972, part2 => 177989832);
