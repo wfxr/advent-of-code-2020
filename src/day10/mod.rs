@@ -1,25 +1,26 @@
+use crate::{solution, Result};
 use std::iter;
 
-fn init_input(input: &str) -> Vec<usize> {
-    let mut nums: Vec<usize> = iter::once(0)
-        .chain(input.lines().map(|line| line.parse().unwrap()))
-        .collect();
+fn init_input(input: &str) -> Result<Vec<usize>> {
+    let mut nums: Vec<usize> = iter::once(Ok(0))
+        .chain(input.lines().map(|line| line.parse::<usize>().map_err(Into::into)))
+        .collect::<Result<_>>()?;
     nums.sort_unstable();
-    nums
+    Ok(nums)
 }
 
-fn part1(input: &str) -> usize {
-    let nums = init_input(input);
+fn part1(input: &str) -> Result<usize> {
+    let nums = init_input(input)?;
 
     let mut delta = [0, 0, 0, 1];
     nums.iter()
         .zip(nums.iter().skip(1))
         .for_each(|(curr, next)| delta[next - curr] += 1);
-    delta[1] * delta[3]
+    Ok(delta[1] * delta[3])
 }
 
-fn part2(input: &str) -> usize {
-    let nums = init_input(input);
+fn part2(input: &str) -> Result<usize> {
+    let nums = init_input(input)?;
     fn group_solve(group: &[usize]) -> usize {
         match group.len() {
             0 | 1 => 1,
@@ -31,7 +32,8 @@ fn part2(input: &str) -> usize {
             }
         }
     }
-    nums.iter()
+    Ok(nums
+        .iter()
         .zip(nums.iter().skip(1))
         .enumerate()
         .fold((1, 0), |(mut acc, mut pos), (i, (curr, next))| {
@@ -41,7 +43,7 @@ fn part2(input: &str) -> usize {
             }
             (acc, pos)
         })
-        .0
+        .0)
 }
 
-crate::solution!(part1 => 2484, part2 => 15790581481472);
+solution!(part1 => 2484, part2 => 15790581481472);

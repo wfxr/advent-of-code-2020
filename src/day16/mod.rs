@@ -1,9 +1,8 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 use std::ops::RangeInclusive;
 
 type Rule = (String, RangeInclusive<usize>, RangeInclusive<usize>);
 
-#[allow(clippy::type_complexity)]
 fn parse_input(input: &str) -> Result<(Vec<Rule>, Vec<usize>, Vec<Vec<usize>>)> {
     let mut it = input.split("\n\n");
     let rules: Vec<_> = it
@@ -108,4 +107,4 @@ fn part2(input: &str) -> Result<usize> {
         .fold(1, |acc, (i, ..)| acc * ticket[mapping[i]]))
 }
 
-solution_result!(part1 => 32842, part2 => 2628667251989);
+solution!(part1 => 32842, part2 => 2628667251989);

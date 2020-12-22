@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 use std::iter;
 use Rule::{And2, And3, Or2, Ref, Val};
 
@@ -47,7 +47,7 @@ fn parse_rule(s: &str) -> Result<(usize, Rule)> {
     let rule = match [it.next(), it.next()] {
         [Some(a), Some(b)] => Or2(Box::new(a?), Box::new(b?)),
         [Some(a), None] => a?,
-        [None, ..] => unreachable!(),
+        [None, ..] => return Err("empty rule".into()),
     };
     Ok((id, rule))
 }
@@ -84,4 +84,4 @@ fn part2(input: &str) -> Result<usize> {
     })
 }
 
-solution_result!(part1 => 220, part2 => 439);
+solution!(part1 => 220, part2 => 439);

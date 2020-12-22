@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 
 fn to_postfix(expr: &str, prec: fn(char) -> Result<u8>) -> Result<Vec<char>> {
     let (mut st, mut rs) = (vec![], vec![]);
@@ -17,7 +17,7 @@ fn to_postfix(expr: &str, prec: fn(char) -> Result<u8>) -> Result<Vec<char>> {
                 loop {
                     match st.last() {
                         Some('(') => break,
-                        Some(&top) if prec(top)? <= prec(op)? => rs.push(st.pop().unwrap()),
+                        Some(&top) if prec(top)? <= prec(op)? => rs.push(st.pop().unwrap()), // no panic
                         _ => break,
                     }
                 }
@@ -74,4 +74,4 @@ fn part2(input: &str) -> Result<i64> {
     })
 }
 
-solution_result!(part1 => 16332191652452, part2 => 351175492232654);
+solution!(part1 => 16332191652452, part2 => 351175492232654);

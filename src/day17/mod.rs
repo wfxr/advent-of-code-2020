@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 use std::collections::{HashMap, HashSet};
 
 type Point = (i8, i8, i8, i8);
@@ -65,4 +65,4 @@ fn part2(input: &str) -> Result<usize> {
     Ok(solve(input, NEIGHBORS))
 }
 
-solution_result!(part1 => 202, part2 => 2028);
+solution!(part1 => 202, part2 => 2028);

@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 
 #[rustfmt::skip]
 fn solve(nums: &[usize], nth: usize) -> Result<usize> {
@@ -28,4 +28,4 @@ fn part2(input: &str) -> Result<usize> {
     solve(&parse_input(input)?, 30_000_000)
 }
 
-solution_result!(part1 => 866, part2 => 1437692);
+solution!(part1 => 866, part2 => 1437692);

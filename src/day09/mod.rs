@@ -1,3 +1,4 @@
+use crate::{solution, Result};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
@@ -22,36 +23,36 @@ fn contiguous_sum(nums: &[i64], target: i64) -> Option<(i64, i64)> {
     None
 }
 
-fn p1_solve(nums: &[i64]) -> i64 {
-    *nums
+fn find_target(nums: &[i64]) -> Result<i64> {
+    Ok(*nums
         .iter()
         .enumerate()
         .skip(25)
         .find(|(i, &x)| !two_sum(&nums[..*i], x))
-        .unwrap()
-        .1
+        .ok_or("not found")?
+        .1)
 }
 
-fn p2_solve(nums: &[i64]) -> i64 {
-    let target = p1_solve(nums);
-    for i in 0..nums.len() {
-        if let Some((min, max)) = contiguous_sum(&nums[i..], target) {
-            return max + min;
+fn parse_input(input: &str) -> Result<Vec<i64>> {
+    input
+        .lines()
+        .map(|line| line.parse::<i64>().map_err(Into::into))
+        .collect()
+}
+
+fn part1(input: &str) -> Result<i64> {
+    find_target(&parse_input(input)?)
+}
+
+fn part2(input: &str) -> Result<i64> {
+    let input = parse_input(input)?;
+    let target = find_target(&input)?;
+    for i in 0..input.len() {
+        if let Some((min, max)) = contiguous_sum(&input[i..], target) {
+            return Ok(max + min);
         }
     }
-    unreachable!()
+    Err("not found".into())
 }
 
-fn parse_input(input: &str) -> Vec<i64> {
-    input.lines().map(|line| line.parse().unwrap()).collect()
-}
-
-fn part1(input: &str) -> i64 {
-    p1_solve(&parse_input(input))
-}
-
-fn part2(input: &str) -> i64 {
-    p2_solve(&parse_input(input))
-}
-
-crate::solution!(part1 => 1309761972, part2 => 177989832);
+solution!(part1 => 1309761972, part2 => 177989832);

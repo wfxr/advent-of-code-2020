@@ -1,10 +1,12 @@
-fn run_once(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
+use crate::{solution, Result};
+
+fn run_once(program: &[(&str, i64)], flip: Option<usize>) -> Result<(i64, bool)> {
     let mut program: Vec<_> = program
         .iter()
         .enumerate()
-        .map(|(i, (ins, arg))| {
+        .map(|(i, &(ins, arg))| {
             let ins = match flip {
-                Some(flip) if i == flip => match ins.as_ref() {
+                Some(flip) if i == flip => match ins {
                     "nop" => "jmp",
                     "jmp" => "nop",
                     _ => ins,
@@ -24,42 +26,42 @@ fn run_once(program: &[(String, i64)], flip: Option<usize>) -> (i64, bool) {
                 }
                 "jmp" => p = (p as i64 + arg) as usize,
                 "nop" => p += 1,
-                _ => unreachable!(),
+                s => return Err(format!("unknown ins: {}", s).into()),
             },
-            None => return (acc, false), // cannot halt
+            None => return Ok((acc, false)), // cannot halt
         };
     }
-    (acc, true) // can halt
+    Ok((acc, true)) // can halt
 }
 
-fn parse_input(input: &str) -> Vec<(String, i64)> {
+fn parse_input(input: &str) -> Result<Vec<(&str, i64)>> {
     input
         .lines()
         .map(|line| {
             let mut it = line.split(' ');
-            match (it.next(), it.next()) {
-                (Some(ins), Some(arg)) => (ins.to_owned(), arg.parse().unwrap()),
-                _ => unreachable!(),
-            }
+            Ok((
+                it.next().ok_or("missing ins")?,
+                it.next().ok_or("missing arg")?.parse::<i64>()?,
+            ))
         })
         .collect()
 }
 
-fn part1(input: &str) -> i64 {
-    run_once(&parse_input(input), None).0
+fn part1(input: &str) -> Result<i64> {
+    Ok(run_once(&parse_input(input)?, None)?.0)
 }
 
-fn part2(input: &str) -> i64 {
-    let input = parse_input(input);
+fn part2(input: &str) -> Result<i64> {
+    let input = parse_input(input)?;
     input
         .iter()
         .enumerate()
-        .filter(|(_, (ins, _))| ins == "jmp" || ins == "nop")
-        .find_map(|(i, ..)| match run_once(&input, Some(i)) {
-            (result, true) => Some(result),
-            _ => None,
-        })
-        .unwrap()
+        .filter(|(_, &(ins, _))| ins == "jmp" || ins == "nop")
+        .map(|(i, ..)| run_once(&input, Some(i)))
+        .find(|res| matches!(res, Ok((_, true))))
+        .transpose()?
+        .ok_or_else(|| "not found".into())
+        .map(|(res, _)| res)
 }
 
-crate::solution!(part1 => 1939, part2 => 2212);
+solution!(part1 => 1939, part2 => 2212);

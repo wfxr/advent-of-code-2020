@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 use std::collections::HashMap;
 
 struct Tile {
@@ -74,4 +74,4 @@ fn part2(_input: &str) -> Result<usize> {
     unimplemented!()
 }
 
-solution_result!(part1 => 8272903687921, part2 => 0);
+solution!(part1 => 8272903687921, part2 => 0);

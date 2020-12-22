@@ -1,29 +1,35 @@
-fn parse_input(input: &str) -> (usize, Vec<&str>) {
+use crate::{solution, Result};
+
+fn parse_input(input: &str) -> Result<(usize, Vec<Option<usize>>)> {
     let mut lines = input.lines();
-    (
-        lines.next().unwrap().parse().unwrap(),
-        lines.next().unwrap().split(',').collect(),
-    )
+    Ok((
+        lines.next().ok_or("missing start time")?.parse()?,
+        lines
+            .next()
+            .ok_or("missing bus schedule")?
+            .split(',')
+            .map(|s| s.parse::<usize>().ok())
+            .collect(),
+    ))
 }
 
-fn part1(input: &str) -> usize {
-    let (t, schedule) = parse_input(input);
+fn part1(input: &str) -> Result<usize> {
+    let (t, schedule) = parse_input(input)?;
     let (wait, bus): (usize, usize) = schedule
-        .iter()
-        .filter_map(|s| s.parse().ok())
-        .map(|bus| (bus - t % bus, bus))
+        .into_iter()
+        .filter_map(|s| s.map(|bus| (bus - t % bus, bus)))
         .min()
-        .unwrap();
-    wait * bus
+        .ok_or("empty")?;
+    Ok(wait * bus)
 }
 
-fn part2(input: &str) -> usize {
-    let (_, schedule) = parse_input(input);
-    schedule
-        .iter()
+fn part2(input: &str) -> Result<usize> {
+    let (_, schedule) = parse_input(input)?;
+    Ok(schedule
+        .into_iter()
         .enumerate()
-        .fold((1, 1), |(mut t, mut step), (delay, &s)| {
-            if let Ok(bus) = s.parse::<usize>() {
+        .fold((1, 1), |(mut t, mut step), (delay, s)| {
+            if let Some(bus) = s {
                 while (t + delay) % bus != 0 {
                     t += step;
                 }
@@ -31,7 +37,7 @@ fn part2(input: &str) -> usize {
             }
             (t, step)
         })
-        .0
+        .0)
 }
 
-crate::solution!(part1 => 2305, part2 => 552612234243498);
+solution!(part1 => 2305, part2 => 552612234243498);

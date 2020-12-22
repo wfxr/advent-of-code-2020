@@ -1,3 +1,5 @@
+use crate::{solution, Result};
+
 struct Point {
     x: i64,
     y: i64,
@@ -8,12 +10,12 @@ impl Point {
         Self { x, y }
     }
 
-    fn turn(&self, degrees: i64) -> Self {
+    fn turn(&self, degrees: i64) -> Result<Self> {
         match degrees {
-            90 => Point::new(-self.y, self.x),
-            180 => Point::new(-self.x, -self.y),
-            270 => Point::new(self.y, -self.x),
-            _ => unreachable!("degrees: {}", degrees),
+            90 => Ok(Point::new(-self.y, self.x)),
+            180 => Ok(Point::new(-self.x, -self.y)),
+            270 => Ok(Point::new(self.y, -self.x)),
+            _ => Err(format!("invalid degrees: {}", degrees).into()),
         }
     }
 
@@ -36,15 +38,20 @@ impl Point {
     }
 }
 
-fn parse_input(input: &str) -> Vec<(char, i64)> {
+fn parse_input(input: &str) -> Result<Vec<(char, i64)>> {
     input
         .lines()
-        .map(|line| (line.chars().next().unwrap(), line[1..].parse().unwrap()))
+        .map(|line| {
+            Ok((
+                line.chars().next().ok_or("empty line")?,
+                line.get(1..).ok_or("missing number")?.parse()?,
+            ))
+        })
         .collect()
 }
 
-fn part1(input: &str) -> usize {
-    let input = parse_input(input);
+fn part1(input: &str) -> Result<usize> {
+    let input = parse_input(input)?;
     let mut ship = Point::new(0, 0);
     let mut direction = Point::new(1, 0);
     for &(ins, v) in &input {
@@ -53,17 +60,17 @@ fn part1(input: &str) -> usize {
             'S' => ship.y -= v,
             'E' => ship.x += v,
             'W' => ship.x -= v,
-            'L' => direction = direction.turn(v),
-            'R' => direction = direction.turn(360 - v),
+            'L' => direction = direction.turn(v)?,
+            'R' => direction = direction.turn(360 - v)?,
             'F' => ship = ship.add(&direction.mul(v)),
-            _ => unreachable!("instruction: {}", ins),
+            _ => return Err(format!("instruction: {}", ins).into()),
         }
     }
-    ship.manhattan()
+    Ok(ship.manhattan())
 }
 
-fn part2(input: &str) -> usize {
-    let input = parse_input(input);
+fn part2(input: &str) -> Result<usize> {
+    let input = parse_input(input)?;
     let mut waypoint = Point::new(10, 1);
     let mut ship = Point::new(0, 0);
     for &(ins, v) in &input {
@@ -72,13 +79,13 @@ fn part2(input: &str) -> usize {
             'S' => waypoint.y -= v,
             'E' => waypoint.x += v,
             'W' => waypoint.x -= v,
-            'L' => waypoint = waypoint.turn(v),
-            'R' => waypoint = waypoint.turn(360 - v),
+            'L' => waypoint = waypoint.turn(v)?,
+            'R' => waypoint = waypoint.turn(360 - v)?,
             'F' => ship = ship.add(&waypoint.mul(v)),
-            _ => unreachable!("instruction: {}", ins),
+            _ => return Err(format!("instruction: {}", ins).into()),
         }
     }
-    ship.manhattan()
+    Ok(ship.manhattan())
 }
 
-crate::solution!(part1 => 1956, part2 => 126797);
+solution!(part1 => 1956, part2 => 126797);

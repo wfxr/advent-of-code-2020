@@ -92,21 +92,6 @@ where
 macro_rules! solution {
     ($part1:ident => $expected1:expr, $part2:ident => $expected2:expr) => {
         pub(super) const SOLUTION: crate::Solution = crate::Solution {
-            part1: |input| Ok($part1(input).to_string()),
-            part2: |input| Ok($part2(input).to_string()),
-        };
-        #[cfg(test)]
-        mod solution {
-            crate::solution_test!(part1 => $expected1);
-            crate::solution_test!(part2 => $expected2);
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! solution_result {
-    ($part1:ident => $expected1:expr, $part2:ident => $expected2:expr) => {
-        pub(super) const SOLUTION: crate::Solution = crate::Solution {
             part1: |input| $part1(input).map(|x| x.to_string()),
             part2: |input| $part2(input).map(|x| x.to_string()),
         };

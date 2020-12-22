@@ -1,3 +1,5 @@
+use crate::{solution, Result};
+
 fn count<F>(answers: &[&str], f: F) -> usize
 where
     F: Fn(usize) -> bool,
@@ -16,12 +18,14 @@ fn parse_input(input: &str) -> Vec<Vec<&str>> {
         .collect()
 }
 
-fn part1(input: &str) -> usize {
-    parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum()
+#[allow(clippy::unnecessary_wraps)]
+fn part1(input: &str) -> Result<usize> {
+    Ok(parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum())
 }
 
-fn part2(input: &str) -> usize {
-    parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum()
+#[allow(clippy::unnecessary_wraps)]
+fn part2(input: &str) -> Result<usize> {
+    Ok(parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum())
 }
 
-crate::solution!(part1 => 6416, part2 => 3050);
+solution!(part1 => 6416, part2 => 3050);

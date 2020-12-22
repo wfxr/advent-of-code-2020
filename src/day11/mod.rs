@@ -1,3 +1,5 @@
+use crate::{solution, Result};
+
 fn solve(input: &str, occupied: fn(&[Vec<char>], (usize, usize)) -> usize) -> usize {
     let seats = parse_input(input);
     let mut curr: Vec<_> = seats.iter().map(|row| row.to_vec()).collect();
@@ -24,8 +26,9 @@ fn parse_input(input: &str) -> Vec<Vec<char>> {
     input.lines().map(|l| l.chars().collect()).collect()
 }
 
-fn part1(input: &str) -> usize {
-    solve(input, |seats, (i, j)| {
+#[allow(clippy::unnecessary_wraps)]
+fn part1(input: &str) -> Result<usize> {
+    Ok(solve(input, |seats, (i, j)| {
         // self included
         seats
             .iter()
@@ -34,11 +37,12 @@ fn part1(input: &str) -> usize {
             .flat_map(|row| row.iter().take((j + 2).min(row.len())).skip(j.saturating_sub(1)))
             .filter(|&&seat| seat == '#')
             .count()
-    })
+    }))
 }
 
-fn part2(input: &str) -> usize {
-    solve(input, |seats, (i, j)| {
+#[allow(clippy::unnecessary_wraps)]
+fn part2(input: &str) -> Result<usize> {
+    Ok(solve(input, |seats, (i, j)| {
         let (maxdi, maxdj) = (seats.len() - i - 1, seats[i].len() - j - 1);
 
         fn occupied(mut iter: impl Iterator<Item = char>) -> usize {
@@ -56,7 +60,7 @@ fn part2(input: &str) -> usize {
         sum += occupied((1..=(maxdi).min(j)).map(|d| seats[i + d][j - d])); // down-left
         sum += occupied((1..=(maxdi).min(maxdj)).map(|d| seats[i + d][j + d])); // down-right
         sum
-    })
+    }))
 }
 
-crate::solution!(part1 => 2453, part2 => 2159);
+solution!(part1 => 2453, part2 => 2159);

@@ -1,3 +1,4 @@
+use crate::{solution, Result};
 use std::collections::HashMap;
 
 fn parse_mask(mask: &str, target: char) -> u64 {
@@ -17,28 +18,29 @@ fn update_memory(mask: u64, addr: u64, val: u64, memory: &mut HashMap<u64, u64>)
     }
 }
 
-fn parse_input(input: &str) -> Vec<(&str, Vec<(u64, u64)>)> {
+fn parse_input(input: &str) -> Result<Vec<(&str, Vec<(u64, u64)>)>> {
     input
         .split("mask = ")
         .map(|s| {
             let mut it = s.split('\n');
-            let mask = it.next().unwrap().trim();
+            let mask = it.next().ok_or("missing mask")?.trim();
             let lines: Vec<(u64, u64)> = it
-                .filter_map(|line| {
+                .filter(|s| !s.is_empty())
+                .map(|line| {
                     let mut it = line.split(|c: char| !c.is_digit(10)).filter(|s| !s.is_empty());
-                    match (it.next(), it.next()) {
-                        (Some(mem), Some(val)) => Some((mem.parse().unwrap(), val.parse().unwrap())),
-                        _ => None,
-                    }
+                    Ok((
+                        it.next().ok_or("missing mem")?.parse::<u64>()?,
+                        it.next().ok_or("missing val")?.parse::<u64>()?,
+                    ))
                 })
-                .collect();
-            (mask, lines)
+                .collect::<Result<_>>()?;
+            Ok((mask, lines))
         })
         .collect()
 }
 
-fn part1(input: &str) -> u64 {
-    parse_input(input)
+fn part1(input: &str) -> Result<u64> {
+    Ok(parse_input(input)?
         .iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
             let (mask0, mask1) = (!parse_mask(mask, '0'), parse_mask(mask, '1'));
@@ -46,11 +48,11 @@ fn part1(input: &str) -> u64 {
             acc
         })
         .values()
-        .sum()
+        .sum())
 }
 
-fn part2(input: &str) -> u64 {
-    parse_input(input)
+fn part2(input: &str) -> Result<u64> {
+    Ok(parse_input(input)?
         .iter()
         .fold(HashMap::new(), |mut acc, (mask, lines)| {
             let (mask1, maskx) = (parse_mask(mask, '1'), parse_mask(mask, 'X'));
@@ -60,7 +62,7 @@ fn part2(input: &str) -> u64 {
             acc
         })
         .values()
-        .sum()
+        .sum())
 }
 
-crate::solution!(part1 => 5902420735773, part2 => 3801988250775);
+solution!(part1 => 5902420735773, part2 => 3801988250775);

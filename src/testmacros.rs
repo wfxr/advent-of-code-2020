@@ -7,9 +7,10 @@ macro_rules! test {
             use crate::input;
             $(
                 #[test]
-                fn $name() {
-                    let res = (SOLUTION.$part)($input).unwrap();
+                fn $name() -> Result<(), Box<dyn std::error::Error>> {
+                    let res = (SOLUTION.$part)($input)?;
                     assert_eq!(res, stringify!($expected));
+                    Ok(())
                 }
             )*
         }
@@ -20,10 +21,11 @@ macro_rules! test {
 macro_rules! solution_test {
     ($part:ident => $answer:expr) => {
         #[test]
-        fn $part() {
+        fn $part() -> Result<(), Box<dyn std::error::Error>> {
             let input = include_str!("input");
-            let res = (super::SOLUTION.$part)(&input).unwrap();
+            let res = (super::SOLUTION.$part)(&input)?;
             assert_eq!(stringify!($answer).trim_matches(|c| c == '"'), res);
+            Ok(())
         }
     };
 }

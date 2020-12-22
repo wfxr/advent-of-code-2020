@@ -1,4 +1,4 @@
-use crate::{solution_result, Result};
+use crate::{solution, Result};
 use std::collections::{HashMap, HashSet};
 
 fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> Result<HashMap<&'a str, &'a str>> {
@@ -12,7 +12,7 @@ fn solve_mapping<'a>(input: &'a [(HashSet<&str>, HashSet<&str>)]) -> Result<Hash
 
     let mut mapping = HashMap::new(); // ingredient -> allergen
     while let Some((&ingr, alles)) = m.iter().find(|(_, alles)| alles.len() == 1) {
-        let alle = *alles.iter().next().unwrap();
+        let alle = *alles.iter().next().unwrap(); // no panic
         mapping.insert(alle, *ingr);
         m.remove(ingr);
         m.iter_mut().for_each(|(_, alles)| {
@@ -54,4 +54,4 @@ fn parse_input(input: &str) -> Vec<(HashSet<&str>, HashSet<&str>)> {
         .collect()
 }
 
-solution_result!(part1 => 2098, part2 => "ppdplc,gkcplx,ktlh,msfmt,dqsbql,mvqkdj,ggsz,hbhsx");
+solution!(part1 => 2098, part2 => "ppdplc,gkcplx,ktlh,msfmt,dqsbql,mvqkdj,ggsz,hbhsx");

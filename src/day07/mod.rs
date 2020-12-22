@@ -1,21 +1,24 @@
+use crate::{solution, Result};
 use std::collections::{HashMap, HashSet};
 
-fn parse_input(input: &str) -> HashMap<String, Vec<(String, usize)>> {
+fn parse_input(input: &str) -> Result<HashMap<String, Vec<(String, usize)>>> {
+    let color_of = |part1, part2| format!("{} {}", part1, part2);
     input
         .lines()
         .map(|line| {
             let mut it = line.split(' ').filter(|s| !s.is_empty());
-            let color = [it.next().unwrap(), it.next().unwrap()].join(" ");
+            let color = color_of(
+                it.next().ok_or("missing color part1")?,
+                it.next().ok_or("missing color part2")?,
+            );
             let childs: Vec<(String, usize)> = it
                 .skip(2)
                 .collect::<Vec<_>>()
                 .chunks(4)
-                .filter_map(|g| match *g {
-                    [n, c1, c2, _] => Some(([c1, c2].join(" "), n.parse().unwrap())),
-                    _ => None,
-                })
-                .collect();
-            (color, childs)
+                .filter(|g| g.len() == 4)
+                .map(|g| Ok((color_of(g[1], g[2]), g[0].parse()?)))
+                .collect::<Result<_>>()?;
+            Ok((color, childs))
         })
         .collect()
 }
@@ -29,8 +32,8 @@ fn bag_size(rule: &HashMap<String, Vec<(String, usize)>>, color: &str) -> usize 
     }
 }
 
-fn part1(input: &str) -> usize {
-    let input = parse_input(input);
+fn part1(input: &str) -> Result<usize> {
+    let input = parse_input(input)?;
     let mut result = HashSet::new();
     let mut s = HashSet::new();
     s.insert(COLOR);
@@ -44,11 +47,11 @@ fn part1(input: &str) -> usize {
             })
             .collect();
     }
-    result.len()
+    Ok(result.len())
 }
 
-fn part2(input: &str) -> usize {
-    bag_size(&parse_input(input), COLOR) - 1
+fn part2(input: &str) -> Result<usize> {
+    Ok(bag_size(&parse_input(input)?, COLOR) - 1)
 }
 
-crate::solution!(part1 => 126, part2 => 220149);
+solution!(part1 => 126, part2 => 220149);
