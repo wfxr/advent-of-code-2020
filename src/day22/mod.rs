@@ -4,6 +4,11 @@ use std::collections::{HashSet, VecDeque};
 
 type Deck = VecDeque<usize>;
 
+enum Player {
+    A,
+    B,
+}
+
 fn parse_input(input: &str) -> Result<(Deck, Deck)> {
     let mut it = input.split("\n\n").map(|part| {
         part.lines()
@@ -51,9 +56,8 @@ fn play1<'a>(p1: &'a mut Deck, p2: &'a mut Deck) -> Result<&'a Deck> {
 
 fn play2<'a>(p1: &'a mut Deck, p2: &'a mut Deck) -> Result<&'a Deck> {
     match play2_inner(p1, p2)? {
-        1 => Ok(p1),
-        2 => Ok(p2),
-        _ => unreachable!(),
+        Player::A => Ok(p1),
+        Player::B => Ok(p2),
     }
 }
 
@@ -65,44 +69,43 @@ fn play2<'a>(p1: &'a mut Deck, p2: &'a mut Deck) -> Result<&'a Deck> {
 // 赢家（包括子游戏获胜）在回合开始的时候将赢得的2张牌放到牌组底部（同part1）
 // 牌组放入底部时始终是自己的先放，赢得的后放
 // 首先获得全部卡牌的玩家获胜。
-fn play2_inner(p1: &mut Deck, p2: &mut Deck) -> Result<u8> {
+fn play2_inner(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
     let (mut hist1, mut hist2) = (HashSet::new(), HashSet::new());
     while !p1.is_empty() && !p2.is_empty() {
-        let winner = if hist1.insert(p1.clone()) && hist2.insert(p2.clone()) {
-            0
-        } else {
-            1
+        let winner = match (hist1.insert(p1.clone()), hist2.insert(p2.clone())) {
+            (true, true) => None,
+            _ => Some(Player::A),
         };
         let (a, b) = (p1.pop_front().unwrap(), p2.pop_front().unwrap()); // no panic
 
-        let winner = if winner == 0 {
-            if p1.len() >= a && p2.len() >= b {
-                let mut p1 = p1.iter().take(a).cloned().collect();
-                let mut p2 = p2.iter().take(b).cloned().collect();
-                play2_inner(&mut p1, &mut p2)?
-            } else {
-                match a.cmp(&b) {
-                    Ordering::Greater => 1,
-                    Ordering::Less => 2,
-                    Ordering::Equal => return Err(format!("same card: {}", a).into()),
+        let winner = match winner {
+            Some(winner) => winner,
+            None => {
+                if p1.len() >= a && p2.len() >= b {
+                    let mut p1 = p1.iter().take(a).cloned().collect();
+                    let mut p2 = p2.iter().take(b).cloned().collect();
+                    play2_inner(&mut p1, &mut p2)?
+                } else {
+                    match a.cmp(&b) {
+                        Ordering::Greater => Player::A,
+                        Ordering::Less => Player::B,
+                        Ordering::Equal => return Err(format!("same card: {}", a).into()),
+                    }
                 }
             }
-        } else {
-            winner
         };
         match winner {
-            1 => {
+            Player::A => {
                 p1.push_back(a);
                 p1.push_back(b);
             }
-            2 => {
+            Player::B => {
                 p2.push_back(b);
                 p2.push_back(a);
             }
-            _ => unreachable!(),
         }
     }
-    Ok(if p1.is_empty() { 2 } else { 1 })
+    Ok(if p1.is_empty() { Player::B } else { Player::A })
 }
 
 fn part1(input: &str) -> Result<usize> {
@@ -115,21 +118,37 @@ fn part2(input: &str) -> Result<usize> {
 solution!(part1 => 31809, part2 => 32835);
 
 #[cfg(test)]
-mod example {
+mod examples {
     crate::test!(
         part1,
-        example: input!("Player 1:",
-                        "9",
-                        "2",
-                        "6",
-                        "3",
-                        "1",
-                        "",
-                        "Player 2:",
-                        "5",
-                        "8",
-                        "4",
-                        "7",
-                        "10") => 306,
+        example1: input!("Player 1:",
+                         "9",
+                         "2",
+                         "6",
+                         "3",
+                         "1",
+                         "",
+                         "Player 2:",
+                         "5",
+                         "8",
+                         "4",
+                         "7",
+                         "10") => 306,
+    );
+    crate::test!(
+        part2,
+        example1: input!("Player 1:",
+                         "9",
+                         "2",
+                         "6",
+                         "3",
+                         "1",
+                         "",
+                         "Player 2:",
+                         "5",
+                         "8",
+                         "4",
+                         "7",
+                         "10") => 291,
     );
 }
