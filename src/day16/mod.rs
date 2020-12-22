@@ -1,11 +1,15 @@
+use crate::{solution_result, Result};
 use std::ops::RangeInclusive;
 
 type Rule = (String, RangeInclusive<usize>, RangeInclusive<usize>);
 
-#[rustfmt::skip]
-fn parse_input(input: &str) -> (Vec<Rule>, Vec<usize>, Vec<Vec<usize>>) {
+#[allow(clippy::type_complexity)]
+fn parse_input(input: &str) -> Result<(Vec<Rule>, Vec<usize>, Vec<Vec<usize>>)> {
     let mut it = input.split("\n\n");
-    let rules: Vec<_> = it .next() .unwrap() .lines()
+    let rules: Vec<_> = it
+        .next()
+        .ok_or("missing rule part")?
+        .lines()
         .filter(|line| !line.is_empty())
         .map(|line| {
             let field = line.chars().take_while(|&c| c != ':').collect();
@@ -14,16 +18,34 @@ fn parse_input(input: &str) -> (Vec<Rule>, Vec<usize>, Vec<Vec<usize>>) {
                 .filter_map(|s| s.trim().parse().ok())
                 .collect();
             match ranges[..] {
-                [n1, n2, n3, n4] => (field, n1..=n2, n3..=n4),
-                _ => panic!("parse failed: {}", line),
+                [n1, n2, n3, n4] => Ok((field, n1..=n2, n3..=n4)),
+                _ => Err(format!("error parsing rule: {}", line).into()),
             }
         })
-        .collect();
-    let mut tickets = it.next().unwrap().lines().skip(1)
-        .chain(it.next().unwrap().lines().skip(1))
-        .map(|line| line.split(',').map(|s| s.parse().unwrap()).collect());
+        .collect::<Result<_>>()?;
 
-    (rules, tickets.next().unwrap(), tickets.collect())
+    let parse_ticket = |line: &str| {
+        line.split(',')
+            .map(|s| s.parse::<usize>().map_err(|e| e.into()))
+            .collect()
+    };
+
+    let your_ticket = parse_ticket(
+        it.next()
+            .ok_or("missing your ticket part")?
+            .lines()
+            .nth(1)
+            .ok_or("missing your ticket")?,
+    )?;
+
+    let other_tickets = it
+        .next()
+        .ok_or("missing other tickets part")?
+        .lines()
+        .skip(1)
+        .map(parse_ticket)
+        .collect::<Result<_>>()?;
+    Ok((rules, your_ticket, other_tickets))
 }
 
 fn any_matching(rules: &[Rule], v: &usize) -> bool {
@@ -56,21 +78,22 @@ fn solve_mapping(matrix: &mut Vec<Vec<bool>>) -> Vec<usize> {
     mapping
 }
 
-#[rustfmt::skip]
-fn part1(input: &str) -> usize {
-    let (rules, _, nearby_tickets) = parse_input(input);
-    nearby_tickets.iter()
+fn part1(input: &str) -> Result<usize> {
+    let (rules, _, nearby_tickets) = parse_input(input)?;
+    Ok(nearby_tickets
+        .iter()
         .flatten()
-        .fold(0, |acc, &v| acc + !any_matching(&rules, &v) as usize * v)
+        .fold(0, |acc, &v| acc + !any_matching(&rules, &v) as usize * v))
 }
 
-#[rustfmt::skip]
-fn part2(input: &str) -> usize {
-    let (rules, ticket, nearby_tickets) = parse_input(input);
-    let valid_tickets: Vec<_> = nearby_tickets.iter()
+fn part2(input: &str) -> Result<usize> {
+    let (rules, ticket, nearby_tickets) = parse_input(input)?;
+    let valid_tickets: Vec<_> = nearby_tickets
+        .iter()
         .filter(|ticket| ticket.iter().all(|v| any_matching(&rules, v)))
         .collect();
-    let mut matrix: Vec<Vec<_>> = rules.iter()
+    let mut matrix: Vec<Vec<_>> = rules
+        .iter()
         .map(|rule| {
             (0..rules.len())
                 .map(|i| valid_tickets.iter().all(|ticket| matching(rule, &ticket[i])))
@@ -78,9 +101,11 @@ fn part2(input: &str) -> usize {
         })
         .collect();
     let mapping = solve_mapping(&mut matrix);
-    rules.iter().enumerate()
+    Ok(rules
+        .iter()
+        .enumerate()
         .filter(|(_, (field, ..))| field.starts_with("departure"))
-        .fold(1, |acc, (i, ..)| acc * ticket[mapping[i]])
+        .fold(1, |acc, (i, ..)| acc * ticket[mapping[i]]))
 }
 
-crate::solution!(part1 => 32842, part2 => 2628667251989);
+solution_result!(part1 => 32842, part2 => 2628667251989);

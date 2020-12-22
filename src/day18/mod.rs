@@ -45,7 +45,7 @@ fn evaluate(expr: &[char]) -> Result<i64> {
         }
     }
     match st.len() {
-        0..=1 => st.pop().ok_or("no result".into()),
+        0..=1 => st.pop().ok_or_else(|| "no result".into()),
         _ => Err(format!("extra operands: {:?}", &st[0..st.len() - 1]).into()),
     }
 }

@@ -1,3 +1,4 @@
+use crate::{solution_result, Result};
 use std::collections::{HashMap, HashSet};
 
 type Point = (i8, i8, i8, i8);
@@ -54,12 +55,14 @@ fn solve(input: &str, neighbors: &[Point]) -> usize {
     matrix.len()
 }
 
-fn part1(input: &str) -> usize {
-    solve(input, &NEIGHBORS[..26])
+#[allow(clippy::unnecessary_wraps)]
+fn part1(input: &str) -> Result<usize> {
+    Ok(solve(input, &NEIGHBORS[..26]))
 }
 
-fn part2(input: &str) -> usize {
-    solve(input, NEIGHBORS)
+#[allow(clippy::unnecessary_wraps)]
+fn part2(input: &str) -> Result<usize> {
+    Ok(solve(input, NEIGHBORS))
 }
 
-crate::solution!(part1 => 202, part2 => 2028);
+solution_result!(part1 => 202, part2 => 2028);
