@@ -1,37 +1,35 @@
 use crate::{solution, Result};
 use std::collections::VecDeque;
 
-fn solve1(cups: &mut VecDeque<u8>) {
-    let (curr, a, b, c) = (
-        cups.pop_front().unwrap(),
-        cups.pop_front().unwrap(),
-        cups.pop_front().unwrap(),
-        cups.pop_front().unwrap(),
-    );
-    assert!(curr > 0);
-    let pos = (1..=6)
-        .map(|x| if curr >= x { curr - x } else { curr + 10 - x })
-        .find_map(|target| cups.iter().position(|&x| x == target))
-        .unwrap();
-    let tmp: Vec<_> = cups.drain(0..=pos).rev().collect();
-    cups.push_front(c);
-    cups.push_front(b);
-    cups.push_front(a);
-    tmp.into_iter().for_each(|x| cups.push_front(x));
-    cups.push_back(curr);
+fn solve(cups: &mut VecDeque<usize>, count: usize) -> Result<&VecDeque<usize>> {
+    let len = cups.len();
+    for _ in 0..count {
+        let mut heads: VecDeque<_> = cups.drain(0..4).collect();
+        let head = heads.pop_front().unwrap();
+        let pos = (1..=len)
+            .rev()
+            .cycle()
+            .skip(len - head + 1)
+            .take(cups.len() - 1)
+            .find_map(|target| cups.iter().position(|&x| x == target))
+            .ok_or("no place to move")?;
+        let body: Vec<_> = cups.drain(0..=pos).rev().collect();
+        heads.into_iter().rev().for_each(|x| cups.push_front(x));
+        body.into_iter().for_each(|x| cups.push_front(x));
+        cups.push_back(head);
+    }
+    Ok(cups)
 }
 
 fn part1(input: &str) -> Result<usize> {
-    let mut input: VecDeque<_> = input.trim().chars().map(|c| c as u8 - '0' as u8).collect();
-    for _ in 0..100 {
-        solve1(&mut input);
-    }
-    Ok(input
+    let mut cups: VecDeque<_> = input.trim().chars().map(|c| c as usize - '0' as usize).collect();
+    solve(&mut cups, 100)?;
+    Ok(cups
         .iter()
         .cycle()
         .skip_while(|&&x| x != 1)
         .skip(1)
-        .take(input.len() - 1)
+        .take(cups.len() - 1)
         .fold(0, |acc, &x| acc * 10 + x as usize))
 }
 
