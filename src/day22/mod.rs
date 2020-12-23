@@ -58,25 +58,20 @@ fn game1(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
 fn game2(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
     let (mut h1, mut h2) = (HashSet::new(), HashSet::new());
     while !p1.is_empty() && !p2.is_empty() {
-        let winner = match (h1.insert(p1.clone()), h2.insert(p2.clone())) {
-            (true, true) => None,
-            _ => Some(Player::One),
+        if !h1.insert(p1.clone()) && !h2.insert(p2.clone()) {
+            return Ok(Player::One);
         };
         let (a, b) = (p1.pop_front().unwrap(), p2.pop_front().unwrap()); // no panic
-
-        let winner = match winner {
-            Some(winner) => winner,
-            None => {
-                if p1.len() >= a as usize && p2.len() >= b as usize {
-                    let mut p1 = p1.iter().take(a as usize).cloned().collect();
-                    let mut p2 = p2.iter().take(b as usize).cloned().collect();
-                    game2(&mut p1, &mut p2)?
-                } else {
-                    match a.cmp(&b) {
-                        Ordering::Greater => Player::One,
-                        Ordering::Less => Player::Two,
-                        Ordering::Equal => return err!("same card: {}", a),
-                    }
+        let winner = {
+            if p1.len() >= a as usize && p2.len() >= b as usize {
+                let mut p1 = p1.iter().take(a as usize).cloned().collect();
+                let mut p2 = p2.iter().take(b as usize).cloned().collect();
+                game2(&mut p1, &mut p2)?
+            } else {
+                match a.cmp(&b) {
+                    Ordering::Greater => Player::One,
+                    Ordering::Less => Player::Two,
+                    Ordering::Equal => return err!("same card: {}", a),
                 }
             }
         };
