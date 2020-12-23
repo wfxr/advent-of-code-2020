@@ -37,20 +37,31 @@ fn solve(input: &str, game: fn(&mut Deck, &mut Deck) -> Result<Player>) -> Resul
         .fold(0, |acc, (i, &num)| acc + num as usize * (i + 1)))
 }
 
+fn duel(a: u8, b: u8) -> Result<Player> {
+    match a.cmp(&b) {
+        Ordering::Greater => Ok(Player::One),
+        Ordering::Less => Ok(Player::Two),
+        Ordering::Equal => return err!("same card: {}", a),
+    }
+}
+
+fn settle(p1: &mut Deck, p2: &mut Deck, a: u8, b: u8, winner: Player) {
+    match winner {
+        Player::One => {
+            p1.push_back(a);
+            p1.push_back(b);
+        }
+        Player::Two => {
+            p2.push_back(b);
+            p2.push_back(a);
+        }
+    }
+}
+
 fn game1(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
     while !p1.is_empty() && !p2.is_empty() {
         let (a, b) = (p1.pop_front().unwrap(), p2.pop_front().unwrap()); // no panic
-        match a.cmp(&b) {
-            Ordering::Greater => {
-                p1.push_back(a);
-                p1.push_back(b);
-            }
-            Ordering::Less => {
-                p2.push_back(b);
-                p2.push_back(a);
-            }
-            Ordering::Equal => return err!("same card: {}", a),
-        }
+        settle(p1, p2, a, b, duel(a, b)?);
     }
     Ok(if p1.is_empty() { Player::Two } else { Player::One })
 }
@@ -62,29 +73,14 @@ fn game2(p1: &mut Deck, p2: &mut Deck) -> Result<Player> {
             return Ok(Player::One);
         };
         let (a, b) = (p1.pop_front().unwrap(), p2.pop_front().unwrap()); // no panic
-        let winner = {
-            if p1.len() >= a as usize && p2.len() >= b as usize {
-                let mut p1 = p1.iter().take(a as usize).cloned().collect();
-                let mut p2 = p2.iter().take(b as usize).cloned().collect();
-                game2(&mut p1, &mut p2)?
-            } else {
-                match a.cmp(&b) {
-                    Ordering::Greater => Player::One,
-                    Ordering::Less => Player::Two,
-                    Ordering::Equal => return err!("same card: {}", a),
-                }
-            }
+        let winner = if p1.len() >= a as usize && p2.len() >= b as usize {
+            let mut p1 = p1.iter().take(a as usize).cloned().collect();
+            let mut p2 = p2.iter().take(b as usize).cloned().collect();
+            game2(&mut p1, &mut p2)?
+        } else {
+            duel(a, b)?
         };
-        match winner {
-            Player::One => {
-                p1.push_back(a);
-                p1.push_back(b);
-            }
-            Player::Two => {
-                p2.push_back(b);
-                p2.push_back(a);
-            }
-        }
+        settle(p1, p2, a, b, winner);
     }
     Ok(if p1.is_empty() { Player::Two } else { Player::One })
 }
