@@ -5,14 +5,12 @@ fn solve(cups: &mut VecDeque<usize>, count: usize) -> Result<&VecDeque<usize>> {
     let len = cups.len();
     for _ in 0..count {
         let mut heads: VecDeque<_> = cups.drain(0..4).collect();
-        let head = heads.pop_front().unwrap();
-        let pos = (1..=len)
-            .rev()
-            .cycle()
-            .skip(len - head + 1)
-            .take(cups.len() - 1)
-            .find_map(|target| cups.iter().position(|&x| x == target))
-            .ok_or("no place to move")?;
+        let mut target = heads[0];
+        while heads.contains(&target) {
+            target = if target > 1 { target - 1 } else { target + len - 1 }
+        }
+        let head = heads.pop_front().unwrap(); // no panic
+        let pos = cups.iter().position(|&x| x == target).ok_or("target not found")?;
         let body: Vec<_> = cups.drain(0..=pos).rev().collect();
         heads.into_iter().rev().for_each(|x| cups.push_front(x));
         body.into_iter().for_each(|x| cups.push_front(x));
