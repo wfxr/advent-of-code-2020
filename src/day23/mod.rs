@@ -1,25 +1,6 @@
 use crate::{solution, Result};
-use std::collections::VecDeque;
 
-fn solve1(cups: &mut VecDeque<usize>, moves: usize) -> Result<()> {
-    let len = cups.len();
-    for _ in 0..moves {
-        let mut heads: VecDeque<_> = cups.drain(0..4).collect();
-        let mut target = heads[0];
-        while heads.contains(&target) {
-            target = if target > 1 { target - 1 } else { target + len - 1 }
-        }
-        let head = heads.pop_front().unwrap(); // no panic
-        let pos = cups.iter().position(|&x| x == target).ok_or("target not found")?;
-        let body: Vec<_> = cups.drain(0..=pos).rev().collect();
-        heads.into_iter().rev().for_each(|x| cups.push_front(x));
-        body.into_iter().for_each(|x| cups.push_front(x));
-        cups.push_back(head);
-    }
-    Ok(())
-}
-
-fn solve2(cups: &mut Vec<usize>, moves: usize) -> usize {
+fn solve(cups: &mut Vec<usize>, moves: usize) {
     for _ in 0..moves {
         let a0 = cups[0];
         let a1 = cups[a0];
@@ -35,40 +16,49 @@ fn solve2(cups: &mut Vec<usize>, moves: usize) -> usize {
         cups[t] = a1;
         cups[a3] = tnext;
     }
-    cups[1] * cups[cups[1]]
 }
 
-fn part1(input: &str) -> Result<usize> {
-    let mut cups: VecDeque<_> = input.trim().chars().map(|c| c as usize - '0' as usize).collect();
-    solve1(&mut cups, 100)?;
-    Ok(cups
-        .iter()
-        .cycle()
-        .skip_while(|&&x| x != 1)
-        .skip(1)
-        .take(cups.len() - 1)
-        .fold(0, |acc, &x| acc * 10 + x as usize))
-}
-
-#[allow(clippy::unnecessary_wraps)]
-fn part2(input: &str) -> Result<usize> {
-    const CUPS: usize = 1_000_000;
-    const MOVES: usize = 10_000_000;
-    let mut cups = vec![0; CUPS + 1];
+fn parse_input(input: &str, total_cups: Option<usize>) -> Vec<usize> {
     let input: Vec<_> = input.trim().chars().map(|c| c as usize - '0' as usize).collect();
+    let total_cups = if let Some(n) = total_cups { n } else { input.len() };
+    let mut cups = vec![0; total_cups + 1];
     let mut x = 0;
     for &n in &input {
         cups[x] = n;
         x = n;
     }
-    cups[input[input.len() - 1]] = if input.len() == CUPS { input[0] } else { input.len() + 1 };
+    cups[input[input.len() - 1]] = if input.len() == total_cups {
+        input[0]
+    } else {
+        input.len() + 1
+    };
     (input.len() + 1..cups.len()).for_each(|x| {
         cups[x] = x + 1;
     });
-    if CUPS > input.len() {
-        cups[CUPS] = input[0];
+    if total_cups > input.len() {
+        cups[total_cups] = input[0];
     }
-    Ok(solve2(&mut cups, MOVES))
+    cups
+}
+
+#[allow(clippy::unnecessary_wraps)]
+fn part1(input: &str) -> Result<usize> {
+    let mut cups = parse_input(input, None);
+    solve(&mut cups, 100);
+    let mut sum = 0;
+    let mut cup = 1;
+    while cups[cup] != 1 {
+        sum = sum * 10 + cups[cup];
+        cup = cups[cup];
+    }
+    Ok(sum)
+}
+
+#[allow(clippy::unnecessary_wraps)]
+fn part2(input: &str) -> Result<usize> {
+    let mut cups = parse_input(input, Some(1_000_000));
+    solve(&mut cups, 10_000_000);
+    Ok(cups[1] * cups[cups[1]])
 }
 
 solution!(part1 => 49725386, part2 => 538935646702);
