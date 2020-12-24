@@ -1,48 +1,36 @@
 use crate::{err, solution, Result};
 use std::collections::HashMap;
 
-fn parse_input(input: &str) -> Result<Vec<Vec<usize>>> {
+fn parse_input(input: &str) -> Result<Vec<(i32, i32)>> {
     input
         .lines()
         .map(|line| {
             let mut it = line.chars();
-            let mut line = vec![];
+            let (mut e, mut ne) = (0, 0);
             while let Some(c) = it.next() {
-                let dir = match c {
-                    'e' => 0,
-                    'w' => 3,
+                let (de, dne) = match c {
+                    'e' => (1, 0),
+                    'w' => (-1, 0),
                     _ => match (c, it.next().ok_or("invalid direction")?) {
-                        ('n', 'e') => 1,
-                        ('s', 'w') => 4,
-                        ('s', 'e') => 2,
-                        ('n', 'w') => 5,
+                        ('n', 'e') => (0, 1),
+                        ('s', 'w') => (0, -1),
+                        ('s', 'e') => (1, -1),
+                        ('n', 'w') => (-1, 1),
                         (a, b) => return err!("invalid direction: {}-{}", a, b),
                     },
                 };
-                line.push(dir);
+                e += de;
+                ne += dne;
             }
-            Ok(line)
+            Ok((e, ne))
         })
         .collect::<Result<_>>()
 }
 
-fn simplify(line: &[usize]) -> (i32, i32) {
-    let mut counts = [0i32; 6];
-    line.iter().for_each(|&x| counts[x] += 1);
-    let e = counts[0] - counts[3];
-    let ne = counts[1] - counts[4];
-    let se = counts[2] - counts[5];
-    let ne = ne - se;
-    let e = e + se;
-    println!("counts: {:?}, ({}, {})", counts, e, ne);
-    (e, ne)
-}
-
 fn part1(input: &str) -> Result<usize> {
     let input = parse_input(input)?;
-
     let mut m = HashMap::new();
-    input.iter().for_each(|line| *m.entry(simplify(line)).or_insert(0) += 1);
+    input.iter().for_each(|tile| *m.entry(tile).or_insert(0) += 1);
     Ok(m.values().filter(|&&x| x % 2 == 1).count())
 }
 
@@ -50,7 +38,7 @@ fn part2(input: &str) -> Result<usize> {
     unimplemented!()
 }
 
-solution!(part1 => 0, part2 => 0);
+solution!(part1 => 289, part2 => 0);
 
 #[cfg(test)]
 mod examples {
