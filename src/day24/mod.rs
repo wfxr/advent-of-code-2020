@@ -1,7 +1,11 @@
 use crate::{err, solution, Result};
 use std::collections::HashMap;
+use std::collections::HashSet;
 
-fn parse_input(input: &str) -> Result<Vec<(i32, i32)>> {
+type Tile = (i32, i32);
+const NEIGHBORS: &[Tile] = &[(1, 0), (-1, 0), (0, 1), (0, -1), (1, -1), (-1, 1)]; // (E, NE)
+
+fn parse_input(input: &str) -> Result<Vec<Tile>> {
     input
         .lines()
         .map(|line| {
@@ -27,43 +31,69 @@ fn parse_input(input: &str) -> Result<Vec<(i32, i32)>> {
         .collect::<Result<_>>()
 }
 
+fn black_tiles(input: &str) -> Result<HashSet<Tile>> {
+    Ok(parse_input(input)?.into_iter().fold(HashSet::new(), |mut acc, tile| {
+        if acc.take(&tile).is_none() {
+            acc.insert(tile);
+        }
+        acc
+    }))
+}
+
 fn part1(input: &str) -> Result<usize> {
-    let input = parse_input(input)?;
-    let mut m = HashMap::new();
-    input.iter().for_each(|tile| *m.entry(tile).or_insert(0) += 1);
-    Ok(m.values().filter(|&&x| x % 2 == 1).count())
+    Ok(black_tiles(input)?.len())
 }
 
 fn part2(input: &str) -> Result<usize> {
-    unimplemented!()
+    fn count_neighbors(blacks: &HashSet<Tile>) -> HashMap<Tile, u8> {
+        blacks.iter().fold(HashMap::new(), |mut acc, (x, y)| {
+            NEIGHBORS.iter().for_each(|(dx, dy)| {
+                *acc.entry((x + dx, y + dy)).or_insert(0) += 1;
+            });
+            acc
+        })
+    }
+    Ok((0..100)
+        .fold(black_tiles(input)?, |blacks, _| {
+            count_neighbors(&blacks)
+                .iter()
+                .filter_map(|(k, v)| match (blacks.contains(k), v) {
+                    (true, n) if (1..3).contains(n) => Some(*k),
+                    (false, 2) => Some(*k),
+                    _ => None,
+                })
+                .collect()
+        })
+        .len())
 }
 
-solution!(part1 => 289, part2 => 0);
+solution!(part1 => 289, part2 => 3551);
 
 #[cfg(test)]
 mod examples {
-    crate::test!(part1,
-        example1: input!(
-                  "sesenwnenenewseeswwswswwnenewsewsw",
-                  "neeenesenwnwwswnenewnwwsewnenwseswesw",
-                  "seswneswswsenwwnwse",
-                  "nwnwneseeswswnenewneswwnewseswneseene",
-                  "swweswneswnenwsewnwneneseenw",
-                  "eesenwseswswnenwswnwnwsewwnwsene",
-                  "sewnenenenesenwsewnenwwwse",
-                  "wenwwweseeeweswwwnwwe",
-                  "wsweesenenewnwwnwsenewsenwwsesesenwne",
-                  "neeswseenwwswnwswswnw",
-                  "nenwswwsewswnenenewsenwsenwnesesenew",
-                  "enewnwewneswsewnwswenweswnenwsenwsw",
-                  "sweneswneswneneenwnewenewwneswswnese",
-                  "swwesenesewenwneswnwwneseswwne",
-                  "enesenwswwswneneswsenwnewswseenwsese",
-                  "wnwnesenesenenwwnenwsewesewsesesew",
-                  "nenewswnwewswnenesenwnesewesw",
-                  "eneswnwswnwsenenwnwnwwseeswneewsenese",
-                  "neswnwewnwnwseenwseesewsenwsweewe",
-                  "wseweeenwnesenwwwswnew",
-                  ) => 10,
+    use crate::{input, test};
+    const SAMPLE: &str = input!(
+        "sesenwnenenewseeswwswswwnenewsewsw",
+        "neeenesenwnwwswnenewnwwsewnenwseswesw",
+        "seswneswswsenwwnwse",
+        "nwnwneseeswswnenewneswwnewseswneseene",
+        "swweswneswnenwsewnwneneseenw",
+        "eesenwseswswnenwswnwnwsewwnwsene",
+        "sewnenenenesenwsewnenwwwse",
+        "wenwwweseeeweswwwnwwe",
+        "wsweesenenewnwwnwsenewsenwwsesesenwne",
+        "neeswseenwwswnwswswnw",
+        "nenwswwsewswnenenewsenwsenwnesesenew",
+        "enewnwewneswsewnwswenweswnenwsenwsw",
+        "sweneswneswneneenwnewenewwneswswnese",
+        "swwesenesewenwneswnwwneseswwne",
+        "enesenwswwswneneswsenwnewswseenwsese",
+        "wnwnesenesenenwwnenwsewesewsesesew",
+        "nenewswnwewswnenesenwnesewesw",
+        "eneswnwswnwsenenwnwnwwseeswneewsenese",
+        "neswnwewnwnwseenwseesewsenwsweewe",
+        "wseweeenwnesenwwwswnew",
     );
+    test!(part1, example1: SAMPLE => 10);
+    test!(part2, example1: SAMPLE => 2208);
 }

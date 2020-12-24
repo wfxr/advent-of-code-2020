@@ -2,6 +2,8 @@
 macro_rules! test {
     ($part:ident $(,$name:ident: $input:expr => $expected:expr)* $(,)?) => {
         mod $part {
+            #[allow(unused_imports)]
+            use super::*;
             use super::super::SOLUTION;
             #[allow(unused_imports)]
             use crate::input;
