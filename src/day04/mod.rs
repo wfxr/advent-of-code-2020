@@ -14,9 +14,9 @@ fn valid2(passport: &HashMap<&str, &str>) -> Result<bool> {
         && passport.iter().try_fold::<_, _, Result<_>>(true, |acc, (&k, v)| {
             Ok(acc
                 && match k {
-                    "byr" => (1920..=2002).contains(&v.parse::<usize>()?),
-                    "iyr" => (2010..=2020).contains(&v.parse::<usize>()?),
-                    "eyr" => (2020..=2030).contains(&v.parse::<usize>()?),
+                    "byr" => (1920..=2002u32).contains(&v.parse()?),
+                    "iyr" => (2010..=2020u32).contains(&v.parse()?),
+                    "eyr" => (2020..=2030u32).contains(&v.parse()?),
                     "hgt" => {
                         let value = v.trim_end_matches(|c| !('0'..='9').contains(&c));
                         let unit = v.trim_start_matches(|c| ('0'..='9').contains(&c));

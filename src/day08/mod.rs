@@ -41,7 +41,7 @@ fn parse_input(input: &str) -> Result<Vec<(&str, i64)>> {
             let mut it = line.split(' ');
             Ok((
                 it.next().ok_or("missing ins")?,
-                it.next().ok_or("missing arg")?.parse::<i64>()?,
+                it.next().ok_or("missing arg")?.parse()?,
             ))
         })
         .collect()

@@ -8,7 +8,7 @@ fn parse_input(input: &str) -> Result<(usize, Vec<Option<usize>>)> {
             .next()
             .ok_or("missing bus schedule")?
             .split(',')
-            .map(|s| s.parse::<usize>().ok())
+            .map(|s| s.parse().ok())
             .collect(),
     ))
 }

@@ -29,8 +29,8 @@ fn parse_input(input: &str) -> Result<Vec<(&str, Vec<(u64, u64)>)>> {
                 .map(|line| {
                     let mut it = line.split(|c: char| !c.is_digit(10)).filter(|s| !s.is_empty());
                     Ok((
-                        it.next().ok_or("missing mem")?.parse::<u64>()?,
-                        it.next().ok_or("missing val")?.parse::<u64>()?,
+                        it.next().ok_or("missing mem")?.parse()?,
+                        it.next().ok_or("missing val")?.parse()?,
                     ))
                 })
                 .collect::<Result<_>>()?;
