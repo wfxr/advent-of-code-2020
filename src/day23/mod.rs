@@ -12,39 +12,28 @@ fn solve(cups: &mut [u32], moves: usize) {
             t = if t > 1 { t - 1 } else { t + cups.len() as u32 - 2 }
         }
         cups[a0 as usize] = a4;
-        cups[0] = a4;
-        let tnext = cups[t as usize];
+        cups[a3 as usize] = cups[t as usize];
         cups[t as usize] = a1;
-        cups[a3 as usize] = tnext;
+        cups[0] = a4;
     }
 }
 
-fn parse_input(input: &str, total_cups: Option<usize>) -> Vec<u32> {
-    let input: Vec<_> = input.trim().chars().filter_map(|c| c.to_digit(10)).collect();
-    let total_cups = if let Some(n) = total_cups { n } else { input.len() };
-    let mut cups = vec![0; total_cups + 1];
-    let mut x = 0;
-    for &n in &input {
-        cups[x as usize] = n;
-        x = n;
+fn parse_input(input: &str, cups: &mut [u32]) {
+    let input: Vec<_> = input
+        .chars()
+        .filter_map(|c| c.to_digit(10))
+        .chain(10..cups.len() as u32)
+        .collect();
+    cups[0] = input[0];
+    for i in 0..input.len() {
+        cups[input[i] as usize] = input[(i + 1) % input.len()];
     }
-    cups[input[input.len() - 1] as usize] = if input.len() == total_cups {
-        input[0]
-    } else {
-        input.len() as u32 + 1
-    };
-    (input.len() + 1..cups.len()).for_each(|i| {
-        cups[i] = i as u32 + 1;
-    });
-    if total_cups > input.len() {
-        cups[total_cups] = input[0];
-    }
-    cups
 }
 
 #[allow(clippy::unnecessary_wraps)]
 fn part1(input: &str) -> Result<usize> {
-    let mut cups = parse_input(input, None);
+    let mut cups = vec![0; 10];
+    parse_input(input, &mut cups);
     solve(&mut cups, 100);
     let mut sum = 0usize;
     let mut cup = 1u32;
@@ -57,7 +46,8 @@ fn part1(input: &str) -> Result<usize> {
 
 #[allow(clippy::unnecessary_wraps)]
 fn part2(input: &str) -> Result<usize> {
-    let mut cups = parse_input(input, Some(1_000_000));
+    let mut cups = vec![0; 1_000_001];
+    parse_input(input, &mut cups);
     solve(&mut cups, 10_000_000);
     Ok(cups[1] as usize * cups[cups[1] as usize] as usize)
 }
