@@ -23,11 +23,7 @@ fn parse_input(input: &str) -> Result<(Vec<Rule>, Vec<usize>, Vec<Vec<usize>>)> 
         })
         .collect::<Result<_>>()?;
 
-    let parse_ticket = |line: &str| {
-        line.split(',')
-            .map(|s| s.parse::<usize>().map_err(|e| e.into()))
-            .collect()
-    };
+    let parse_ticket = |line: &str| line.split(',').map(|s| Ok(s.parse()?)).collect();
 
     let your_ticket = parse_ticket(
         it.next()

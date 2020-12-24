@@ -3,7 +3,7 @@ use std::iter;
 
 fn init_input(input: &str) -> Result<Vec<usize>> {
     let mut nums: Vec<usize> = iter::once(Ok(0))
-        .chain(input.lines().map(|line| line.parse::<usize>().map_err(Into::into)))
+        .chain(input.lines().map(|line| Ok(line.parse::<usize>()?)))
         .collect::<Result<_>>()?;
     nums.sort_unstable();
     Ok(nums)

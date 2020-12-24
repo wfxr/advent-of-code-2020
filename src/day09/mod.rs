@@ -34,10 +34,7 @@ fn find_target(nums: &[i64]) -> Result<i64> {
 }
 
 fn parse_input(input: &str) -> Result<Vec<i64>> {
-    input
-        .lines()
-        .map(|line| line.parse::<i64>().map_err(Into::into))
-        .collect()
+    input.lines().map(|line| Ok(line.parse()?)).collect()
 }
 
 fn part1(input: &str) -> Result<i64> {

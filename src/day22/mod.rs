@@ -14,7 +14,7 @@ fn parse_input(input: &str) -> Result<(Deck, Deck)> {
         part.lines()
             .filter(|s| !s.is_empty())
             .skip(1)
-            .map(|s| s.parse::<u8>().map_err(Into::into))
+            .map(|s| Ok(s.parse()?))
             .collect::<Result<_>>()
     });
 
