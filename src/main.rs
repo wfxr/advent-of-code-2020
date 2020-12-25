@@ -22,6 +22,7 @@ mod day21;
 mod day22;
 mod day23;
 mod day24;
+mod day25;
 // +MODS+
 
 fn get_solution(index: &str) -> Option<Solution> {
@@ -50,6 +51,7 @@ fn get_solution(index: &str) -> Option<Solution> {
         "day22" => day22::SOLUTION.into(),
         "day23" => day23::SOLUTION.into(),
         "day24" => day24::SOLUTION.into(),
+        "day25" => day25::SOLUTION.into(),
         _ => None, // +SOLUTIONS+
     }
 }
