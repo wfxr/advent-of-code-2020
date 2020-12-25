@@ -1,41 +1,26 @@
 use crate::{err, solution, Result};
 
-fn next(x: usize, subject: usize) -> usize {
-    (x * subject) % 20201227
-}
-
-fn encryption(subject: usize, n: usize) -> usize {
-    let mut x = 1;
-    for _ in 0..n {
-        x = next(x, subject)
-    }
-    x
-}
-
-fn calc_loops(pubkey: usize) -> usize {
-    let (mut x, mut n) = (1, 0);
-    loop {
-        n += 1;
-        x = next(x, 7);
-        if x == pubkey {
-            return n;
-        }
-    }
-}
-
 fn part1(input: &str) -> Result<usize> {
     let nums: Vec<usize> = input.lines().map(|s| Ok(s.parse()?)).collect::<Result<_>>()?;
-    if nums.len() != 2 {
-        return err!("need exactly two numbers");
+    let (a, b) = match nums[..] {
+        [a, b] => (a, b),
+        _ => return err!("need exactly two numbers as input"),
+    };
+    let (mut x, mut loops) = (1, 0);
+    while x != a && x != b {
+        x = x * 7 % 20201227;
+        loops += 1;
     }
-    Ok(encryption(nums[1], calc_loops(nums[0])))
+    let x = if x == a { b } else { a };
+    Ok((0..loops).fold(1, |key, _| key * x % 20201227))
 }
 
-fn part2(input: &str) -> Result<usize> {
-    unimplemented!()
+#[allow(clippy::unnecessary_wraps)]
+fn part2(_input: &str) -> Result<&str> {
+    Ok("🎄")
 }
 
-solution!(part1 => 0, part2 => 0);
+solution!(part1 => 19924389, part2 => "🎄");
 
 #[cfg(test)]
 mod examples {
