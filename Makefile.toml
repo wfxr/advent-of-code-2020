@@ -26,8 +26,7 @@ dir="src/$mod"
 main() {
     [ -d $dir ] && echo "abort: $dir already exists." && return 1
     cp -r templates "$dir"
-    sed -i "/+MODS+/i mod $mod;" src/main.rs
-    sed -i "/+SOLUTIONS+/i \"$mod\" => $mod::SOLUTION.into()," src/main.rs
+    sed -i "/+SOLUTIONS+/i \    $mod," src/lib.rs
     cargo fmt
 }; main; ARG=$?
 if [ $ARG -ne 0 ]; then
