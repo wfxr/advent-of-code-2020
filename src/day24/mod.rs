@@ -1,6 +1,5 @@
 use crate::{err, solution, Result};
-use std::collections::HashMap;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 type Tile = (i32, i32);
 const NEIGHBORS: &[Tile] = &[(1, 0), (-1, 0), (0, 1), (0, -1), (1, -1), (-1, 1)]; // (E, NE)
@@ -10,9 +9,9 @@ fn parse_input(input: &str) -> Result<Vec<Tile>> {
         .lines()
         .map(|line| {
             let mut it = line.chars();
-            let (mut e, mut ne) = (0, 0);
+            let (mut x, mut y) = (0, 0);
             while let Some(c) = it.next() {
-                let (de, dne) = match c {
+                let (dx, dy) = match c {
                     'e' => (1, 0),
                     'w' => (-1, 0),
                     _ => match (c, it.next().ok_or("invalid direction")?) {
@@ -23,20 +22,20 @@ fn parse_input(input: &str) -> Result<Vec<Tile>> {
                         (a, b) => return err!("invalid direction: {}-{}", a, b),
                     },
                 };
-                e += de;
-                ne += dne;
+                x += dx;
+                y += dy;
             }
-            Ok((e, ne))
+            Ok((x, y))
         })
-        .collect::<Result<_>>()
+        .collect()
 }
 
 fn black_tiles(input: &str) -> Result<HashSet<Tile>> {
-    Ok(parse_input(input)?.into_iter().fold(HashSet::new(), |mut acc, tile| {
-        if acc.take(&tile).is_none() {
-            acc.insert(tile);
+    Ok(parse_input(input)?.into_iter().fold(HashSet::new(), |mut s, tile| {
+        if !s.remove(&tile) {
+            s.insert(tile);
         }
-        acc
+        s
     }))
 }
 
@@ -45,23 +44,19 @@ fn part1(input: &str) -> Result<usize> {
 }
 
 fn part2(input: &str) -> Result<usize> {
-    fn count_neighbors(blacks: &HashSet<Tile>) -> HashMap<Tile, u8> {
-        blacks.iter().fold(HashMap::new(), |mut acc, (x, y)| {
-            NEIGHBORS.iter().for_each(|(dx, dy)| {
-                *acc.entry((x + dx, y + dy)).or_insert(0) += 1;
-            });
-            acc
-        })
-    }
     Ok((0..100)
         .fold(black_tiles(input)?, |blacks, _| {
-            count_neighbors(&blacks)
+            blacks
                 .iter()
-                .filter_map(|(k, v)| match (blacks.contains(k), v) {
-                    (true, n) if (1..3).contains(n) => Some(*k),
-                    (false, 2) => Some(*k),
-                    _ => None,
-                })
+                .fold(HashMap::new(), |mut acc, (x, y)| {
+                    NEIGHBORS.iter().for_each(|(dx, dy)| {
+                        *acc.entry((x + dx, y + dy)).or_insert(0) += 1;
+                    });
+                    acc
+                }) // neighbors
+                .iter()
+                .filter(|&(k, &v)| v == 2 || v == 1 && blacks.contains(k))
+                .map(|(&k, _)| k)
                 .collect()
         })
         .len())
