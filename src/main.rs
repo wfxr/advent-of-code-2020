@@ -76,10 +76,10 @@ fn main() {
         let input = std::fs::read_to_string(format!("src/{}/input", index))?;
 
         let (t, result) = measure(|| part1(&input));
-        println!("part 1: {}, time used: {:?}", result?, t);
+        println!("part 1: {} - time: {:?}", result?, t);
 
         let (t, result) = measure(|| part2(&input));
-        println!("part 2: {}, time used {:?}", result?, t);
+        println!("part 2: {} - time: {:?}", result?, t);
         Ok(())
     }() {
         eprintln!("Error: {}", e);
@@ -91,9 +91,9 @@ fn measure<T, F>(f: F) -> (Duration, T)
 where
     F: FnOnce() -> T,
 {
-    let start = Instant::now();
+    let now = Instant::now();
     let r = f();
-    (Instant::now() - start, r)
+    (now.elapsed(), r)
 }
 
 #[macro_export]
