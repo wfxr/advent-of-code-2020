@@ -3,16 +3,15 @@ use crate::{err, solution, Result};
 fn part1(input: &str) -> Result<usize> {
     let nums: Vec<usize> = input.lines().map(|s| Ok(s.parse()?)).collect::<Result<_>>()?;
     let (a, b) = match nums[..] {
-        [a, b] => (a, b),
-        _ => return err!("need exactly two numbers as input"),
+        [a, b] => (a.min(b), b.max(a)),
+        _ => return err!("require exactly two numbers"),
     };
-    let (mut x, mut loops) = (1, 0);
-    while x != a && x != b {
-        x = x * 7 % 20201227;
-        loops += 1;
+    let (mut v, mut x) = (1, 1);
+    while v != a {
+        v = v * 7 % 20201227;
+        x = x * b % 20201227;
     }
-    let x = if x == a { b } else { a };
-    Ok((0..loops).fold(1, |key, _| key * x % 20201227))
+    Ok(x)
 }
 
 #[allow(clippy::unnecessary_wraps)]
