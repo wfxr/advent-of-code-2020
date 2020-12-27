@@ -9,27 +9,15 @@ struct Tile {
     flip:  u8,
 }
 
+#[rustfmt::skip]
 impl Tile {
-    fn row(&self, i: usize) -> Vec<char> {
-        (0..self.size).map(|j| self.get(i, j)).collect()
-    }
+    fn row(&self, i: usize) -> Vec<char> { (0..self.size).map(|j| self.get(i, j)).collect() }
+    fn col(&self, j: usize) -> Vec<char> { (0..self.size).map(|i| self.get(i, j)).collect() }
 
-    fn col(&self, j: usize) -> Vec<char> {
-        (0..self.size).map(|i| self.get(i, j)).collect()
-    }
-
-    fn top(&self) -> Vec<char> {
-        self.row(0)
-    }
-    fn bot(&self) -> Vec<char> {
-        self.row(self.size - 1)
-    }
-    fn lhs(&self) -> Vec<char> {
-        self.col(0)
-    }
-    fn rhs(&self) -> Vec<char> {
-        self.col(self.size - 1)
-    }
+    fn top(&self) -> Vec<char> { self.row(0) }
+    fn bot(&self) -> Vec<char> { self.row(self.size - 1) }
+    fn lhs(&self) -> Vec<char> { self.col(0) }
+    fn rhs(&self) -> Vec<char> { self.col(self.size - 1) }
 
     fn get(&self, i: usize, j: usize) -> char {
         let max = self.size - 1;
@@ -48,14 +36,10 @@ impl Tile {
 
     fn possible_borders(&self) -> Vec<Vec<char>> {
         vec![
-            self.top(),
-            self.bot(),
-            self.lhs(),
-            self.rhs(),
-            self.top().into_iter().rev().collect(),
-            self.bot().into_iter().rev().collect(),
-            self.lhs().into_iter().rev().collect(),
-            self.rhs().into_iter().rev().collect(),
+            self.top(), self.top().into_iter().rev().collect(),
+            self.bot(), self.bot().into_iter().rev().collect(),
+            self.lhs(), self.lhs().into_iter().rev().collect(),
+            self.rhs(), self.rhs().into_iter().rev().collect(),
         ]
     }
 
@@ -97,36 +81,17 @@ fn parse_input(input: &str) -> Result<HashMap<usize, Tile>> {
         .collect::<Result<_>>()
 }
 
-fn part1(input: &str) -> Result<usize> {
-    Ok(parse_input(input)?
-        .into_iter()
-        .fold(HashMap::new(), |mut borders, (id, tile)| {
-            tile.possible_borders().into_iter().for_each(|border| {
-                borders.entry(border).or_insert_with(Vec::new).push(id);
-            });
-            borders
-        })
-        .values()
-        .filter(|ids| ids.len() == 1)
-        .flatten()
-        .fold(HashMap::new(), |mut acc, &id| {
-            *acc.entry(id).or_insert(0) += 1;
-            acc
-        })
-        .iter()
-        .filter_map(|(&id, &count)| if count == 4 { Some(id) } else { None })
-        .product())
-}
-
-fn part2(input: &str) -> Result<usize> {
-    let mut tiles = parse_input(input)?;
-    let borders = tiles.iter().fold(HashMap::new(), |mut borders, (&id, tile)| {
+fn get_borders(tiles: &HashMap<usize, Tile>) -> HashMap<Vec<char>, Vec<usize>> {
+    tiles.iter().fold(HashMap::new(), |mut borders, (&id, tile)| {
         tile.possible_borders().into_iter().for_each(|border| {
             borders.entry(border).or_insert_with(Vec::new).push(id);
         });
         borders
-    });
-    let corners: Vec<_> = borders
+    })
+}
+
+fn get_corners(borders: &HashMap<Vec<char>, Vec<usize>>) -> Vec<usize> {
+    borders
         .values()
         .filter(|ids| ids.len() == 1)
         .flatten()
@@ -136,24 +101,31 @@ fn part2(input: &str) -> Result<usize> {
         })
         .iter()
         .filter_map(|(&id, &count)| if count == 4 { Some(id) } else { None })
-        .collect();
+        .collect()
+}
 
+fn part1(input: &str) -> Result<usize> {
+    Ok(get_corners(&get_borders(&parse_input(input)?)).iter().product())
+}
+
+// FIXME: still in a messy
+fn part2(input: &str) -> Result<usize> {
+    let mut tiles = parse_input(input)?;
+    let borders = get_borders(&tiles);
+    let corners = get_corners(&borders);
+
+    // find the top-left corner
     let mut curr = *corners.get(0).ok_or("corner not found")?;
     let curr_tile = tiles
         .get_mut(&curr)
-        .ok_or_else(|| format!("right tile({}) not found", curr))?;
-    let mut found = false;
-    for &(flip, rot) in TRANSFORMS {
-        curr_tile.trans(flip, rot);
-        if borders[&curr_tile.top()].len() == 1 && borders[&curr_tile.lhs()].len() == 1 {
-            found = true;
-            break;
-        }
-    }
-
-    if !found {
-        return err!("can't transform to right position");
-    }
+        .ok_or_else(|| format!("corner tile({}) not found", curr))?;
+    TRANSFORMS
+        .iter()
+        .find(|&&(flip, rot)| {
+            curr_tile.trans(flip, rot);
+            borders[&curr_tile.top()].len() == 1 && borders[&curr_tile.lhs()].len() == 1
+        })
+        .ok_or("can't transform to right position")?;
 
     let n: usize = (tiles.len() as f64).sqrt() as usize; // image_size
     let mut grids = vec![vec![0; n]; n];
@@ -207,11 +179,6 @@ fn part2(input: &str) -> Result<usize> {
             return err!("no matched tile found");
         }
     }
-
-    assert_eq!(
-        grids[0][0] * grids[0][n - 1] * grids[n - 1][0] * grids[n - 1][n - 1],
-        8272903687921
-    );
 
     let m = &tiles[&grids[0][0]].size - 2;
     let mut image = vec![vec![0u8; m * n]; m * n];
