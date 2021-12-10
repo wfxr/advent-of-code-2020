@@ -1,26 +1,27 @@
 use crate::{err, solution, Result};
 use std::collections::HashMap;
 
+const N: usize = 10;
+
 #[derive(Debug)]
 struct Tile {
-    size:  usize,
-    cells: Vec<char>,
+    cells: [u8; N * N],
     rot:   u8,
     flip:  u8,
 }
 
 #[rustfmt::skip]
 impl Tile {
-    fn row(&self, i: usize) -> Vec<char> { (0..self.size).map(|j| self.get(i, j)).collect() }
-    fn col(&self, j: usize) -> Vec<char> { (0..self.size).map(|i| self.get(i, j)).collect() }
+    fn row(&self, i: usize) -> Vec<u8> { (0..N).map(|j| self.get(i, j)).collect() }
+    fn col(&self, j: usize) -> Vec<u8> { (0..N).map(|i| self.get(i, j)).collect() }
 
-    fn top(&self) -> Vec<char> { self.row(0) }
-    fn bot(&self) -> Vec<char> { self.row(self.size - 1) }
-    fn lhs(&self) -> Vec<char> { self.col(0) }
-    fn rhs(&self) -> Vec<char> { self.col(self.size - 1) }
+    fn top(&self) -> Vec<u8> { self.row(0) }
+    fn bot(&self) -> Vec<u8> { self.row(N - 1) }
+    fn lhs(&self) -> Vec<u8> { self.col(0) }
+    fn rhs(&self) -> Vec<u8> { self.col(N - 1) }
 
-    fn get(&self, i: usize, j: usize) -> char {
-        let max = self.size - 1;
+    fn get(&self, i: usize, j: usize) -> u8 {
+        let max = N - 1;
         let (i, j) = match self.rot % 4 {
             0 => (i, j),
             1 => (j, max - i),
@@ -31,10 +32,10 @@ impl Tile {
             0 => (i, j),
             _ => (i, max - j),
         };
-        self.cells[i * self.size + j]
+        self.cells[i * N + j]
     }
 
-    fn possible_borders(&self) -> Vec<Vec<char>> {
+    fn possible_borders(&self) -> Vec<Vec<u8>> {
         vec![
             self.top(), self.top().into_iter().rev().collect(),
             self.bot(), self.bot().into_iter().rev().collect(),
@@ -51,31 +52,26 @@ impl Tile {
 
 const TRANSFORMS: &[(u8, u8)] = &[(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (1, 3)];
 
-fn parse_tile<'a>(lines: impl Iterator<Item = &'a str>) -> Result<Tile> {
-    let mut size = 0;
-    let cells: Vec<_> = lines.inspect(|_| size += 1).flat_map(|l| l.chars()).collect();
-    match size * size {
-        n if n == cells.len() => Ok(Tile { size, cells, rot: 0, flip: 0 }),
-        _ => err!("tile size inconsistent"),
-    }
-}
-
 fn parse_input(input: &str) -> Result<HashMap<usize, Tile>> {
     input
         .split("\n\n")
-        .map(|part| {
-            let mut it = part.lines();
-            let id: usize = it
-                .next()
-                .ok_or("missing tile id")?
-                .trim_matches(|c: char| !c.is_digit(10))
-                .parse()?;
-            Ok((id, parse_tile(it)?))
+        .map(|part| match part.split_once('\n') {
+            Some((title, cells)) => {
+                let id = title.trim_matches(|c: char| !c.is_digit(10)).parse()?;
+                let cells = cells
+                    .lines()
+                    .flat_map(|line| line.bytes())
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .map_err(|_| format!("invalid tile: {cells}"))?;
+                Ok((id, Tile { cells, rot: 0, flip: 0 }))
+            }
+            None => err!("missing tile id"),
         })
         .collect()
 }
 
-fn get_borders(tiles: &HashMap<usize, Tile>) -> HashMap<Vec<char>, Vec<usize>> {
+fn get_borders(tiles: &HashMap<usize, Tile>) -> HashMap<Vec<u8>, Vec<usize>> {
     tiles.iter().fold(HashMap::new(), |mut borders, (&id, tile)| {
         tile.possible_borders().into_iter().for_each(|border| {
             borders.entry(border).or_insert_with(Vec::new).push(id);
@@ -84,7 +80,7 @@ fn get_borders(tiles: &HashMap<usize, Tile>) -> HashMap<Vec<char>, Vec<usize>> {
     })
 }
 
-fn get_corners(borders: &HashMap<Vec<char>, Vec<usize>>) -> Vec<usize> {
+fn get_corners(borders: &HashMap<Vec<u8>, Vec<usize>>) -> Vec<usize> {
     borders
         .values()
         .filter(|ids| ids.len() == 1)
@@ -101,6 +97,12 @@ fn get_corners(borders: &HashMap<Vec<char>, Vec<usize>>) -> Vec<usize> {
 fn part1(input: &str) -> Result<usize> {
     Ok(get_corners(&get_borders(&parse_input(input)?)).iter().product())
 }
+
+const MONSTER: &[&[u8]] = &[
+    b"                  # ",
+    b"#    ##    ##    ###",
+    b" #  #  #  #  #  #   ",
+];
 
 // FIXME: still in a messy
 fn part2(input: &str) -> Result<usize> {
@@ -175,7 +177,7 @@ fn part2(input: &str) -> Result<usize> {
         }
     }
 
-    let m = &tiles[&grids[0][0]].size - 2;
+    let m = N - 2;
     let mut image = vec![vec![0u8; m * n]; m * n];
     for i in 0..n {
         for j in 0..n {
@@ -290,11 +292,5 @@ fn count_monsters(image: &[Vec<u8>]) -> Result<usize> {
 
     Ok(image.iter().flatten().filter(|&&c| c == b'#').count())
 }
-
-const MONSTER: &[&[u8]] = &[
-    b"                  # ",
-    b"#    ##    ##    ###",
-    b" #  #  #  #  #  #   ",
-];
 
 solution!(part1 => 8272903687921, part2 => 2304);
