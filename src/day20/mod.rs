@@ -55,12 +55,7 @@ fn parse_tile<'a>(lines: impl Iterator<Item = &'a str>) -> Result<Tile> {
     let mut size = 0;
     let cells: Vec<_> = lines.inspect(|_| size += 1).flat_map(|l| l.chars()).collect();
     match size * size {
-        n if n == cells.len() => Ok(Tile {
-            size,
-            cells,
-            rot: 0,
-            flip: 0,
-        }),
+        n if n == cells.len() => Ok(Tile { size, cells, rot: 0, flip: 0 }),
         _ => err!("tile size inconsistent"),
     }
 }
@@ -68,7 +63,6 @@ fn parse_tile<'a>(lines: impl Iterator<Item = &'a str>) -> Result<Tile> {
 fn parse_input(input: &str) -> Result<HashMap<usize, Tile>> {
     input
         .split("\n\n")
-        .filter(|s| !s.is_empty())
         .map(|part| {
             let mut it = part.lines();
             let id: usize = it
@@ -78,7 +72,7 @@ fn parse_input(input: &str) -> Result<HashMap<usize, Tile>> {
                 .parse()?;
             Ok((id, parse_tile(it)?))
         })
-        .collect::<Result<_>>()
+        .collect()
 }
 
 fn get_borders(tiles: &HashMap<usize, Tile>) -> HashMap<Vec<char>, Vec<usize>> {
@@ -100,7 +94,7 @@ fn get_corners(borders: &HashMap<Vec<char>, Vec<usize>>) -> Vec<usize> {
             acc
         })
         .iter()
-        .filter_map(|(&id, &count)| if count == 4 { Some(id) } else { None })
+        .filter_map(|(&id, &count)| (count == 4).then_some(id))
         .collect()
 }
 
@@ -129,6 +123,7 @@ fn part2(input: &str) -> Result<usize> {
 
     let n: usize = (tiles.len() as f64).sqrt() as usize; // image_size
     let mut grids = vec![vec![0; n]; n];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..n {
         grids[i][0] = curr;
         for j in 1..n {
@@ -193,12 +188,13 @@ fn part2(input: &str) -> Result<usize> {
         }
     }
 
-    Ok(count_monsters(&image)?)
+    count_monsters(&image)
 }
 
 fn rot(image: &[Vec<u8>]) -> Vec<Vec<u8>> {
     let n = image.len();
     let mut new = vec![vec![0u8; n]; n];
+    #[allow(clippy::needless_range_loop)]
     for i in 0..n {
         for j in 0..n {
             new[i][j] = image[j][n - 1 - i];

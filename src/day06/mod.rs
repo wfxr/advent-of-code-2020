@@ -20,12 +20,12 @@ fn parse_input(input: &str) -> Vec<Vec<&str>> {
 
 #[allow(clippy::unnecessary_wraps)]
 fn part1(input: &str) -> Result<usize> {
-    Ok(parse_input(input).iter().map(|v| count(&v, |n| n > 0)).sum())
+    Ok(parse_input(input).iter().map(|v| count(v, |n| n > 0)).sum())
 }
 
 #[allow(clippy::unnecessary_wraps)]
 fn part2(input: &str) -> Result<usize> {
-    Ok(parse_input(input).iter().map(|v| count(&v, |n| n == v.len())).sum())
+    Ok(parse_input(input).iter().map(|v| count(v, |n| n == v.len())).sum())
 }
 
 solution!(part1 => 6416, part2 => 3050);

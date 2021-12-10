@@ -68,7 +68,7 @@ fn solve(input: &str, replace_rule: fn(&str) -> &str) -> Result<usize> {
         .ok_or("missing strings")?
         .lines()
         .map(|msg| msg.chars().collect::<Vec<_>>())
-        .filter(|msg| matches(&rules[0], &rules, &msg).any(|s| s.is_empty()))
+        .filter(|msg| matches(&rules[0], &rules, msg).any(|s| s.is_empty()))
         .count())
 }
 

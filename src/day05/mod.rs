@@ -10,15 +10,11 @@ fn seat_id(seat: &str) -> usize {
 }
 
 fn part1(input: &str) -> Result<usize> {
-    input
-        .lines()
-        .map(|seat| seat_id(seat))
-        .max()
-        .ok_or_else(|| "empty".into())
+    input.lines().map(seat_id).max().ok_or_else(|| "empty".into())
 }
 
 fn part2(input: &str) -> Result<usize> {
-    let mut seats: Vec<_> = input.lines().map(|seat| seat_id(seat)).collect();
+    let mut seats: Vec<_> = input.lines().map(seat_id).collect();
     seats.sort_unstable();
     seats
         .iter()

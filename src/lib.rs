@@ -1,3 +1,5 @@
+#![feature(bool_to_option)]
+
 mod macros;
 #[cfg(test)]
 mod testmacros;

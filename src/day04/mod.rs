@@ -45,8 +45,7 @@ fn parse_input(input: &str) -> Result<Vec<HashMap<&str, &str>>> {
         .split("\n\n")
         .filter(|s| !s.is_empty())
         .map(|part| {
-            Ok(part
-                .split_whitespace()
+            part.split_whitespace()
                 .filter(|s| !s.is_empty())
                 .map(|item| {
                     let mut split = item.split(':');
@@ -55,7 +54,7 @@ fn parse_input(input: &str) -> Result<Vec<HashMap<&str, &str>>> {
                         split.next().ok_or("missing value")?,
                     ))
                 })
-                .collect::<Result<_>>()?)
+                .collect()
         })
         .collect()
 }
