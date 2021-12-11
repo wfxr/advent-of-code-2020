@@ -105,6 +105,7 @@ const MONSTER: &[&[u8]] = &[
 ];
 
 // FIXME: still in a messy
+#[allow(clippy::needless_range_loop)]
 fn part2(input: &str) -> Result<usize> {
     let mut tiles = parse_input(input)?;
     let borders = get_borders(&tiles);
@@ -125,9 +126,36 @@ fn part2(input: &str) -> Result<usize> {
 
     let n: usize = (tiles.len() as f64).sqrt() as usize; // image_size
     let mut grids = vec![vec![0; n]; n];
-    #[allow(clippy::needless_range_loop)]
-    for i in 0..n {
+
+    // left-top corner
+    grids[0][0] = curr_id;
+
+    // left border
+    for i in 1..n {
+        let up_id = curr_id;
+        let up_tile = &tiles[&up_id];
+        let up_tile_bot = up_tile.bot();
+        curr_id = *borders[&up_tile_bot]
+            .iter()
+            .find(|&&id| id != up_id)
+            .ok_or_else(|| format!("bottom tile id({}) not found", up_id))?;
+        let curr_tile = tiles
+            .get_mut(&curr_id)
+            .ok_or_else(|| format!("bottom tile({}) not found", up_id))?;
+
+        TRANSFORMS
+            .iter()
+            .find(|&&(flip, rot)| {
+                curr_tile.trans(flip, rot);
+                curr_tile.top() == up_tile_bot
+            })
+            .ok_or("no matched tile found")?;
         grids[i][0] = curr_id;
+    }
+
+    // remaining cells
+    for i in 0..n {
+        curr_id = grids[i][0];
         for j in 1..n {
             let left_tile = &tiles[&curr_id];
             let left_tile_rhs = left_tile.rhs();
@@ -147,48 +175,23 @@ fn part2(input: &str) -> Result<usize> {
                 .ok_or("no matched tile found")?;
             grids[i][j] = curr_id;
         }
-        if i < n - 1 {
-            let up_id = grids[i][0];
-            let up_tile = &tiles[&up_id];
-            let up_tile_bot = up_tile.bot();
-            curr_id = *borders[&up_tile_bot]
-                .iter()
-                .find(|&&id| id != up_id)
-                .ok_or_else(|| format!("bottom tile id({}) not found", up_id))?;
-            let curr_tile = tiles
-                .get_mut(&curr_id)
-                .ok_or_else(|| format!("bottom tile({}) not found", up_id))?;
-
-            TRANSFORMS
-                .iter()
-                .find(|&&(flip, rot)| {
-                    curr_tile.trans(flip, rot);
-                    curr_tile.top() == up_tile_bot
-                })
-                .ok_or("no matched tile found")?;
-        }
     }
 
     let m = N - 2;
     let mut image = vec![vec![0u8; m * n]; m * n];
-    for i in 0..n {
-        for j in 0..n {
-            let tile = &tiles[&grids[i][j]];
-            for ii in 0..m {
-                for jj in 0..m {
-                    image[i * m + ii][j * m + jj] = tile.get(ii + 1, jj + 1) as u8;
-                }
-            }
-        }
-    }
-
+    (0..n)
+        .flat_map(|i| (0..n).map(move |j| (i, j)))
+        .flat_map(|(i, j)| (0..m).flat_map(move |ii| (0..m).map(move |jj| (i, j, ii, jj))))
+        .for_each(|(i, j, ii, jj)| {
+            image[i * m + ii][j * m + jj] = tiles[&grids[i][j]].get(ii + 1, jj + 1) as u8;
+        });
     count_monsters(&image)
 }
 
+#[allow(clippy::needless_range_loop)]
 fn rot(image: &[Vec<u8>]) -> Vec<Vec<u8>> {
     let n = image.len();
     let mut new = vec![vec![0u8; n]; n];
-    #[allow(clippy::needless_range_loop)]
     for i in 0..n {
         for j in 0..n {
             new[i][j] = image[j][n - 1 - i];
