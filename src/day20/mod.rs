@@ -98,12 +98,6 @@ fn part1(input: &str) -> Result<usize> {
     Ok(get_corners(&get_borders(&parse_input(input)?)).iter().product())
 }
 
-const MONSTER: &[&[u8]] = &[
-    b"                  # ",
-    b"#    ##    ##    ###",
-    b" #  #  #  #  #  #   ",
-];
-
 // FIXME: still in a messy
 #[allow(clippy::needless_range_loop)]
 fn part2(input: &str) -> Result<usize> {
@@ -185,105 +179,89 @@ fn part2(input: &str) -> Result<usize> {
         .for_each(|(i, j, ii, jj)| {
             image[i * m + ii][j * m + jj] = tiles[&grids[i][j]].get(ii + 1, jj + 1) as u8;
         });
-    count_monsters(&image)
+    count_monsters(&mut image)
 }
 
-#[allow(clippy::needless_range_loop)]
-fn rot(image: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let n = image.len();
-    let mut new = vec![vec![0u8; n]; n];
-    for i in 0..n {
-        for j in 0..n {
-            new[i][j] = image[j][n - 1 - i];
-        }
-    }
-    new
-}
-fn flip(image: &[Vec<u8>]) -> Vec<Vec<u8>> {
-    let n = image.len();
-    let mut new = vec![vec![0u8; n]; n];
-    for i in 0..n {
-        for j in 0..n {
-            new[i][j] = image[i][n - 1 - j];
-        }
-    }
-    new
+fn range(height: usize, width: usize) -> impl Iterator<Item = (usize, usize)> {
+    (0..height).flat_map(move |h| (0..width).map(move |w| (h, w)))
 }
 
-fn count_monsters(image: &[Vec<u8>]) -> Result<usize> {
+fn rot(monster: &[Vec<u8>]) -> Vec<Vec<u8>> {
+    let (h, w) = (monster.len(), monster[0].len());
+    range(h, w).fold(vec![vec![0; h]; w], |mut acc, (i, j)| {
+        acc[j][i] = monster[h - 1 - i][j];
+        acc
+    })
+}
+
+fn flip(monster: &[Vec<u8>]) -> Vec<Vec<u8>> {
+    let (h, w) = (monster.len(), monster[0].len());
+    range(h, w).fold(vec![vec![0; w]; h], |mut acc, (i, j)| {
+        acc[i][j] = monster[i][w - 1 - j];
+        acc
+    })
+}
+
+fn count_monsters(image: &mut [Vec<u8>]) -> Result<usize> {
     let n = image.len();
-    let h = MONSTER.len();
-    let w = MONSTER[0].len();
 
-    let check_monster = |image: &[Vec<u8>], i: usize, j: usize| {
-        let mut found = true;
-        for ii in 0..h {
-            for jj in 0..w {
-                if MONSTER[ii][jj] == b'#' && image[i + ii][j + jj] != b'#' {
-                    found = false;
-                }
-            }
-        }
-        found
+    let mut monster: Vec<Vec<u8>> = vec![
+        b"                  # ".to_vec(),
+        b"#    ##    ##    ###".to_vec(),
+        b" #  #  #  #  #  #   ".to_vec(),
+    ];
+
+    let check_monster = |monster: &[Vec<u8>], image: &[Vec<u8>], i: usize, j: usize| {
+        let (h, w) = (monster.len(), monster[0].len());
+        range(h, w).all(|(ii, jj)| monster[ii][jj] != b'#' || image[i + ii][j + jj] == b'#')
     };
 
-    let has_monsters = |image: &[Vec<u8>]| {
-        for i in 0..n - h {
-            for j in 0..n - w {
-                if check_monster(image, i, j) {
-                    return true;
-                }
-            }
-        }
-        false
+    let has_monsters = |monster: &[Vec<u8>], image: &[Vec<u8>]| {
+        let (h, w) = (monster.len(), monster[0].len());
+        range(n - h, n - w).any(|(i, j)| check_monster(monster, image, i, j))
     };
 
-    let mark_monster = |image: &mut [Vec<u8>], i: usize, j: usize| {
-        for ii in 0..h {
-            for jj in 0..w {
-                if MONSTER[ii][jj] == b'#' {
-                    image[i + ii][j + jj] = b'O'
-                }
-            }
-        }
+    let mark_monster = |monster: &[Vec<u8>], image: &mut [Vec<u8>], i: usize, j: usize| {
+        let (h, w) = (monster.len(), monster[0].len());
+        range(h, w)
+            .filter(|&(ii, jj)| monster[ii][jj] == b'#')
+            .for_each(|(ii, jj)| image[i + ii][j + jj] = b'O')
     };
 
-    let mark_monsters = |image: &mut [Vec<u8>]| {
-        for i in 0..n - h {
-            for j in 0..n - w {
-                if check_monster(image, i, j) {
-                    mark_monster(image, i, j);
-                }
+    let mark_monsters = |monster: &[Vec<u8>], image: &mut [Vec<u8>]| {
+        let (h, w) = (monster.len(), monster[0].len());
+        range(n - h, n - w).for_each(|(i, j)| {
+            if check_monster(monster, image, i, j) {
+                mark_monster(monster, image, i, j)
             }
-        }
+        })
     };
 
-    let mut image = image.to_vec();
     let mut found = false;
     if !found {
         for _ in 0..4 {
-            image = rot(&image);
-            if has_monsters(&image) {
+            if has_monsters(&monster, image) {
                 found = true;
                 break;
             }
+            monster = rot(&monster);
         }
     }
     if !found {
-        image = flip(&image);
+        monster = flip(&monster);
         for _ in 0..4 {
-            image = rot(&image);
-            if has_monsters(&image) {
+            if has_monsters(&monster, image) {
                 found = true;
                 break;
             }
+            monster = rot(&monster);
         }
     }
     if !found {
         return err!("monsters not found");
     }
 
-    mark_monsters(&mut image);
+    mark_monsters(&monster, image);
 
     Ok(image.iter().flatten().filter(|&&c| c == b'#').count())
 }
