@@ -1,4 +1,5 @@
 #![feature(bool_to_option)]
+#![feature(destructuring_assignment)]
 
 mod macros;
 #[cfg(test)]
