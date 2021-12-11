@@ -111,10 +111,10 @@ fn part2(input: &str) -> Result<usize> {
     let corners = get_corners(&borders);
 
     // find the top-left corner
-    let mut curr = *corners.get(0).ok_or("corner not found")?;
+    let mut curr_id = *corners.get(0).ok_or("corner not found")?;
     let curr_tile = tiles
-        .get_mut(&curr)
-        .ok_or_else(|| format!("corner tile({}) not found", curr))?;
+        .get_mut(&curr_id)
+        .ok_or_else(|| format!("corner tile({curr_id}) not found"))?;
     TRANSFORMS
         .iter()
         .find(|&&(flip, rot)| {
@@ -127,53 +127,45 @@ fn part2(input: &str) -> Result<usize> {
     let mut grids = vec![vec![0; n]; n];
     #[allow(clippy::needless_range_loop)]
     for i in 0..n {
-        grids[i][0] = curr;
+        grids[i][0] = curr_id;
         for j in 1..n {
-            let left_tile = &tiles[&curr];
-            let border = left_tile.rhs();
-            curr = *borders[&border]
+            let left_tile = &tiles[&curr_id];
+            let left_tile_rhs = left_tile.rhs();
+            curr_id = *borders[&left_tile_rhs]
                 .iter()
-                .find(|&&id| id != curr)
-                .ok_or_else(|| format!("right tile id({}) not found", curr))?;
+                .find(|&&id| id != curr_id)
+                .ok_or_else(|| format!("right tile id({}) not found", curr_id))?;
             let curr_tile = tiles
-                .get_mut(&curr)
-                .ok_or_else(|| format!("right tile({}) not found", curr))?;
-            let mut found = false;
-            for &(flip, rot) in TRANSFORMS {
-                curr_tile.trans(flip, rot);
-                if curr_tile.lhs() == border {
-                    found = true;
-                    break;
-                }
-            }
-            if !found {
-                return err!("no matched tile found");
-            }
-            grids[i][j] = curr;
+                .get_mut(&curr_id)
+                .ok_or_else(|| format!("right tile({}) not found", curr_id))?;
+            TRANSFORMS
+                .iter()
+                .find(|&&(flip, rot)| {
+                    curr_tile.trans(flip, rot);
+                    curr_tile.lhs() == left_tile_rhs
+                })
+                .ok_or("no matched tile found")?;
+            grids[i][j] = curr_id;
         }
-        if i == n - 1 {
-            break; // last row
-        }
-        let up_id = grids[i][0];
-        let up_tile = &tiles[&up_id];
-        let border = up_tile.bot();
-        curr = *borders[&border]
-            .iter()
-            .find(|&&id| id != up_id)
-            .ok_or_else(|| format!("bottom tile id({}) not found", up_id))?;
-        let curr_tile = tiles
-            .get_mut(&curr)
-            .ok_or_else(|| format!("bottom tile({}) not found", up_id))?;
-        let mut found = false;
-        for &(flip, rot) in TRANSFORMS {
-            curr_tile.trans(flip, rot);
-            if curr_tile.top() == border {
-                found = true;
-                break;
-            }
-        }
-        if !found {
-            return err!("no matched tile found");
+        if i < n - 1 {
+            let up_id = grids[i][0];
+            let up_tile = &tiles[&up_id];
+            let up_tile_bot = up_tile.bot();
+            curr_id = *borders[&up_tile_bot]
+                .iter()
+                .find(|&&id| id != up_id)
+                .ok_or_else(|| format!("bottom tile id({}) not found", up_id))?;
+            let curr_tile = tiles
+                .get_mut(&curr_id)
+                .ok_or_else(|| format!("bottom tile({}) not found", up_id))?;
+
+            TRANSFORMS
+                .iter()
+                .find(|&&(flip, rot)| {
+                    curr_tile.trans(flip, rot);
+                    curr_tile.top() == up_tile_bot
+                })
+                .ok_or("no matched tile found")?;
         }
     }
 
